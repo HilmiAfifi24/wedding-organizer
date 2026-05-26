@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  VENDOR
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  PENDING_PAYMENT
+  CONFIRMED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?
+  passwordHash String?
+  role         Role      @default(USER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  vendor                 Vendor?
+  bookings               Booking[]
+  reviews                Review[]
+  verifiedPaymentProofs  PaymentProof[]
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vendors Vendor[]
+}
+
+model Vendor {
+  id          String   @id @default(uuid())
+  ownerId     String   @unique
+  name        String
+  description String?
+  location    String?
+  contactInfo String?
+  priceRange  String?
+  categoryId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner     User      @relation(fields: [ownerId], references: [id])
+  category  Category? @relation(fields: [categoryId], references: [id])
+  services  Service[]
+  bookings  Booking[]
+  reviews   Review[]
+  portfolio Portfolio[]
+
+  @@index([categoryId])
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  vendorId    String
+  name        String
+  description String?
+  price       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vendor   Vendor    @relation(fields: [vendorId], references: [id])
+  bookings Booking[]
+
+  @@index([vendorId])
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  vendorId    String
+  serviceId   String?
+  bookedAt    DateTime
+  status      BookingStatus @default(PENDING)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id])
+  vendor      Vendor       @relation(fields: [vendorId], references: [id])
+  service     Service?     @relation(fields: [serviceId], references: [id])
+  paymentProof PaymentProof?
+  review      Review?
+
+  @@index([userId])
+  @@index([vendorId])
+  @@index([serviceId])
+}
+
+model PaymentProof {
+  id           String   @id @default(uuid())
+  bookingId    String   @unique
+  fileUrl      String
+  note         String?
+  verifiedById String?
+  verifiedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  booking    Booking @relation(fields: [bookingId], references: [id])
+  verifiedBy User?   @relation(fields: [verifiedById], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  userId    String
+  vendorId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@index([userId])
+  @@index([vendorId])
+}
+
+model Portfolio {
+  id          String    @id @default(uuid())
+  vendorId    String
+  title       String?
+  description String?
+  mediaUrl    String
+  mediaType   MediaType
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@index([vendorId])
+}
