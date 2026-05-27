@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@wo/ui-components";
+import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent } from "@wo/ui-components";
 import { loginSchema, type LoginInput } from "../validators/auth";
 
 export function LoginForm() {
@@ -39,10 +39,10 @@ export function LoginForm() {
       if (res?.error) {
         setError("Email/password salah, atau Anda tidak memiliki hak akses Administrator.");
       } else {
-        router.push("/dashboard");
+        router.push("/");
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan sistem. Silakan coba beberapa saat lagi.");
     } finally {
       setLoading(false);

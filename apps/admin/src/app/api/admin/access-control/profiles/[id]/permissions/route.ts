@@ -1,5 +1,3 @@
-import type { SetAccessPermissionInput } from "@wo/shared-types";
-
 import { createAccessControlUseCases } from "@/core/infrastructure/http/access-control-factory";
 import {
   errorResponse,
@@ -7,23 +5,13 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { setAccessPermissionsPayloadSchema } from "@/modules/access-control/validators/access-control";
 
 type RouteContext = {
   params: Promise<{
     id: string;
   }>;
 };
-
-type SetPermissionsPayload = {
-  permissions: SetAccessPermissionInput[];
-};
-
-const isValidPermissionsPayload = (value: SetAccessPermissionInput[]) =>
-  value.every(
-    (permission) =>
-      typeof permission.accessMenuId === "string" &&
-      (!permission.customEvents || permission.customEvents.every((event) => typeof event === "string"))
-  );
 
 export async function GET(_: Request, context: RouteContext) {
   try {
@@ -41,12 +29,15 @@ export async function GET(_: Request, context: RouteContext) {
 export async function PUT(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const payload = await parseJsonBody<SetPermissionsPayload | SetAccessPermissionInput[]>(request);
-
-    const permissions = Array.isArray(payload) ? payload : payload.permissions;
-    if (!Array.isArray(permissions) || !isValidPermissionsPayload(permissions)) {
-      return errorResponse(400, "Invalid permissions payload");
+    const payload = await parseJsonBody<unknown>(request);
+    const parsed = setAccessPermissionsPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse(400, "Invalid permissions payload", parsed.error.flatten());
     }
+
+    const permissions = Array.isArray(parsed.data)
+      ? parsed.data
+      : parsed.data.permissions;
 
     const { setAccessProfilePermissionsUseCase } = createAccessControlUseCases();
     const data = await setAccessProfilePermissionsUseCase.execute(id, permissions);

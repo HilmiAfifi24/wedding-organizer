@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   CreateAccessMenuInput,
@@ -75,39 +75,42 @@ export const useAccessControlDashboard = () => {
 
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [permissionMatrix, setPermissionMatrix] = useState<PermissionMatrixState>({});
+  const activeFetchIdRef = useRef(0);
 
   const clearMessages = () => {
     setError(null);
     setSuccess(null);
   };
 
-  const loadMenus = useCallback(async (profileId?: string) => {
-    const menuTree = await accessControlApi.listMenus(profileId);
-    setMenus(menuTree);
-    return menuTree;
-  }, []);
+  const getNextFetchId = () => {
+    activeFetchIdRef.current += 1;
+    return activeFetchIdRef.current;
+  };
 
-  const loadPermissions = useCallback(
-    async (profileId: string, menuTree?: AccessMenuTreeNode[]) => {
-      const response = await accessControlApi.getProfilePermissions(profileId);
-      const mappedPermissions: SetAccessPermissionInput[] = response.permissions.map(
-        (permission) => ({
-          accessMenuId: permission.accessMenuId,
-          canView: permission.canView,
-          canInsert: permission.canInsert,
-          canUpdate: permission.canUpdate,
-          canUpsert: permission.canUpsert,
-          canDelete: permission.canDelete,
-          canHistory: permission.canHistory,
-          customEvents: permission.customEvents,
-        })
-      );
+  const isLatestFetch = (fetchId: number) => activeFetchIdRef.current === fetchId;
 
-      const sourceMenus = menuTree ?? menus;
-      setPermissionMatrix(buildPermissionMatrix(sourceMenus, mappedPermissions));
-    },
-    [menus]
+  const fetchMenus = useCallback(
+    async (profileId?: string) => accessControlApi.listMenus(profileId),
+    []
   );
+
+  const fetchProfilePermissions = useCallback(async (profileId: string) => {
+    const response = await accessControlApi.getProfilePermissions(profileId);
+    const mappedPermissions: SetAccessPermissionInput[] = response.permissions.map(
+      (permission) => ({
+        accessMenuId: permission.accessMenuId,
+        canView: permission.canView,
+        canInsert: permission.canInsert,
+        canUpdate: permission.canUpdate,
+        canUpsert: permission.canUpsert,
+        canDelete: permission.canDelete,
+        canHistory: permission.canHistory,
+        customEvents: permission.customEvents,
+      })
+    );
+
+    return mappedPermissions;
+  }, []);
 
   const loadUsers = useCallback(async (search?: string) => {
     const data = await accessControlApi.listUsers(search);
@@ -115,6 +118,7 @@ export const useAccessControlDashboard = () => {
   }, []);
 
   const loadInitial = useCallback(async () => {
+    const fetchId = getNextFetchId();
     clearMessages();
     setIsLoading(true);
 
@@ -122,26 +126,40 @@ export const useAccessControlDashboard = () => {
       const [profileData, userData, menuTree] = await Promise.all([
         accessControlApi.listProfiles(),
         accessControlApi.listUsers(),
-        loadMenus(),
+        fetchMenus(),
       ]);
+
+      if (!isLatestFetch(fetchId)) {
+        return;
+      }
 
       setProfiles(profileData);
       setUsers(userData);
+      setMenus(menuTree);
 
       const firstProfileId = profileData[0]?.id ?? null;
       setSelectedProfileId(firstProfileId);
 
       if (firstProfileId) {
-        await loadPermissions(firstProfileId, menuTree);
+        const mappedPermissions = await fetchProfilePermissions(firstProfileId);
+        if (!isLatestFetch(fetchId)) {
+          return;
+        }
+        setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
       } else {
         setPermissionMatrix(buildPermissionMatrix(menuTree));
       }
     } catch (loadError) {
+      if (!isLatestFetch(fetchId)) {
+        return;
+      }
       setError(loadError instanceof Error ? loadError.message : "Failed to load data");
     } finally {
-      setIsLoading(false);
+      if (isLatestFetch(fetchId)) {
+        setIsLoading(false);
+      }
     }
-  }, [loadMenus, loadPermissions]);
+  }, [fetchMenus, fetchProfilePermissions]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -155,20 +173,35 @@ export const useAccessControlDashboard = () => {
 
   const selectProfile = useCallback(
     async (profileId: string) => {
+      const fetchId = getNextFetchId();
       clearMessages();
       setSelectedProfileId(profileId);
       setIsLoading(true);
 
       try {
-        const menuTree = await loadMenus(profileId);
-        await loadPermissions(profileId, menuTree);
+        const [menuTree, mappedPermissions] = await Promise.all([
+          fetchMenus(profileId),
+          fetchProfilePermissions(profileId),
+        ]);
+
+        if (!isLatestFetch(fetchId)) {
+          return;
+        }
+
+        setMenus(menuTree);
+        setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
       } catch (loadError) {
+        if (!isLatestFetch(fetchId)) {
+          return;
+        }
         setError(loadError instanceof Error ? loadError.message : "Failed to load permissions");
       } finally {
-        setIsLoading(false);
+        if (isLatestFetch(fetchId)) {
+          setIsLoading(false);
+        }
       }
     },
-    [loadMenus, loadPermissions]
+    [fetchMenus, fetchProfilePermissions]
   );
 
   const createMenu = useCallback(
@@ -178,10 +211,14 @@ export const useAccessControlDashboard = () => {
 
       try {
         await accessControlApi.createMenu(payload);
-        const menuTree = await loadMenus(selectedProfileId ?? undefined);
+        const profileId = selectedProfileId;
+        const menuTree = await fetchMenus(profileId ?? undefined);
 
-        if (selectedProfileId) {
-          await loadPermissions(selectedProfileId, menuTree);
+        setMenus(menuTree);
+
+        if (profileId) {
+          const mappedPermissions = await fetchProfilePermissions(profileId);
+          setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
         } else {
           setPermissionMatrix(buildPermissionMatrix(menuTree));
         }
@@ -193,7 +230,7 @@ export const useAccessControlDashboard = () => {
         setIsSaving(false);
       }
     },
-    [loadMenus, loadPermissions, selectedProfileId]
+    [fetchMenus, fetchProfilePermissions, selectedProfileId]
   );
 
   const updateMenu = useCallback(
@@ -203,10 +240,16 @@ export const useAccessControlDashboard = () => {
 
       try {
         await accessControlApi.updateMenu(id, payload);
-        const menuTree = await loadMenus(selectedProfileId ?? undefined);
+        const profileId = selectedProfileId;
+        const menuTree = await fetchMenus(profileId ?? undefined);
 
-        if (selectedProfileId) {
-          await loadPermissions(selectedProfileId, menuTree);
+        setMenus(menuTree);
+
+        if (profileId) {
+          const mappedPermissions = await fetchProfilePermissions(profileId);
+          setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
+        } else {
+          setPermissionMatrix(buildPermissionMatrix(menuTree));
         }
 
         setSuccess("Menu berhasil diperbarui");
@@ -216,7 +259,7 @@ export const useAccessControlDashboard = () => {
         setIsSaving(false);
       }
     },
-    [loadMenus, loadPermissions, selectedProfileId]
+    [fetchMenus, fetchProfilePermissions, selectedProfileId]
   );
 
   const deleteMenu = useCallback(
@@ -226,10 +269,14 @@ export const useAccessControlDashboard = () => {
 
       try {
         await accessControlApi.deleteMenu(id);
-        const menuTree = await loadMenus(selectedProfileId ?? undefined);
+        const profileId = selectedProfileId;
+        const menuTree = await fetchMenus(profileId ?? undefined);
 
-        if (selectedProfileId) {
-          await loadPermissions(selectedProfileId, menuTree);
+        setMenus(menuTree);
+
+        if (profileId) {
+          const mappedPermissions = await fetchProfilePermissions(profileId);
+          setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
         } else {
           setPermissionMatrix(buildPermissionMatrix(menuTree));
         }
@@ -241,7 +288,7 @@ export const useAccessControlDashboard = () => {
         setIsSaving(false);
       }
     },
-    [loadMenus, loadPermissions, selectedProfileId]
+    [fetchMenus, fetchProfilePermissions, selectedProfileId]
   );
 
   const createProfile = useCallback(
@@ -252,11 +299,15 @@ export const useAccessControlDashboard = () => {
       try {
         const created = await accessControlApi.createProfile(payload);
         const profileData = await accessControlApi.listProfiles();
-        const menuTree = await loadMenus(created.id);
+        const [menuTree, mappedPermissions] = await Promise.all([
+          fetchMenus(created.id),
+          fetchProfilePermissions(created.id),
+        ]);
 
         setProfiles(profileData);
         setSelectedProfileId(created.id);
-        setPermissionMatrix(buildPermissionMatrix(menuTree));
+        setMenus(menuTree);
+        setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
 
         setSuccess("Profil akses berhasil ditambahkan");
       } catch (saveError) {
@@ -265,7 +316,7 @@ export const useAccessControlDashboard = () => {
         setIsSaving(false);
       }
     },
-    [loadMenus]
+    [fetchMenus, fetchProfilePermissions]
   );
 
   const updateProfile = useCallback(
@@ -297,13 +348,15 @@ export const useAccessControlDashboard = () => {
 
         const profileData = await accessControlApi.listProfiles();
         const nextProfileId = profileData[0]?.id ?? null;
-        const menuTree = await loadMenus(nextProfileId ?? undefined);
+        const menuTree = await fetchMenus(nextProfileId ?? undefined);
 
         setProfiles(profileData);
         setSelectedProfileId(nextProfileId);
+        setMenus(menuTree);
 
         if (nextProfileId) {
-          await loadPermissions(nextProfileId, menuTree);
+          const mappedPermissions = await fetchProfilePermissions(nextProfileId);
+          setPermissionMatrix(buildPermissionMatrix(menuTree, mappedPermissions));
         } else {
           setPermissionMatrix(buildPermissionMatrix(menuTree));
         }
@@ -315,7 +368,7 @@ export const useAccessControlDashboard = () => {
         setIsSaving(false);
       }
     },
-    [loadMenus, loadPermissions]
+    [fetchMenus, fetchProfilePermissions]
   );
 
   const updatePermission = useCallback(

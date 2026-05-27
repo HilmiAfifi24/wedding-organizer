@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/modules/auth/components/logout-button";
+import type { SidebarNavigationItem } from "@/shared/lib/sidebar-navigation";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
+  navigation: SidebarNavigationItem[];
   user?: {
     name?: string | null;
     email?: string | null;
@@ -14,58 +16,76 @@ interface AdminLayoutProps {
   };
 }
 
-export function AdminLayout({ children, user }: AdminLayoutProps) {
+const isActivePath = (pathname: string, path: string | null) => {
+  if (!path) return false;
+  if (path === "/") return pathname === "/";
+  return pathname === path || pathname.startsWith(`${path}/`);
+};
+
+const NavigationNode = ({
+  item,
+  pathname,
+  depth,
+  onNavigate,
+}: {
+  item: SidebarNavigationItem;
+  pathname: string;
+  depth: number;
+  onNavigate: () => void;
+}) => {
+  const active = isActivePath(pathname, item.path);
+
+  return (
+    <div className="space-y-1">
+      {item.path ? (
+        <Link
+          href={item.path}
+          onClick={onNavigate}
+          className={`flex items-center rounded-lg px-3 py-2 text-sm transition ${
+            active
+              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-700/30"
+              : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
+          }`}
+          style={{ paddingLeft: `${12 + depth * 12}px` }}
+        >
+          {item.title}
+        </Link>
+      ) : (
+        <p
+          className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500"
+          style={{ paddingLeft: `${12 + depth * 12}px` }}
+        >
+          {item.title}
+        </p>
+      )}
+
+      {item.children.length > 0 && (
+        <div className="space-y-1">
+          {item.children.map((child) => (
+            <NavigationNode
+              key={child.id}
+              item={child}
+              pathname={pathname}
+              depth={depth + 1}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export function AdminLayout({ children, user, navigation }: AdminLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navigation = [
-    {
-      name: "Dashboard Console",
-      href: "/dashboard",
-      icon: (
-        <svg
-          className="h-5 w-5 shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Administrasi Akses",
-      href: "/",
-      icon: (
-        <svg
-          className="h-5 w-5 shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-          />
-        </svg>
-      ),
-    },
-  ];
-
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      {/* Mobile sidebar trigger */}
-      <div className="fixed top-4 left-4 z-40 lg:hidden">
+      <div className="fixed left-4 top-4 z-40 lg:hidden">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="rounded-lg bg-slate-905/90 p-2 text-slate-400 hover:text-slate-100 border border-slate-800 backdrop-blur-md"
+          className="rounded-lg border border-slate-800 bg-slate-900/90 p-2 text-slate-400 backdrop-blur-md hover:text-slate-100"
         >
           <svg
             className="h-6 w-6"
@@ -83,17 +103,15 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
         </button>
       </div>
 
-      {/* Sidebar background overlay for mobile */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-slate-950/80 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-sm lg:hidden"
         />
       )}
 
-      {/* Sidebar navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-35 flex w-72 flex-col border-r border-slate-800 bg-slate-900/95 backdrop-blur-md px-6 py-6 transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-35 flex w-72 flex-col border-r border-slate-800 bg-slate-900/95 px-6 py-6 backdrop-blur-md transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -114,39 +132,33 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
             </svg>
           </div>
           <div>
-            <h1 className="font-bold text-slate-100 text-md tracking-tight">
-              WO Platform
-            </h1>
-            <p className="text-xs text-indigo-400 font-semibold">Admin Panel</p>
+            <h1 className="text-md font-bold tracking-tight text-slate-100">WO Platform</h1>
+            <p className="text-xs font-semibold text-indigo-400">Admin Panel</p>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1.5">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/10"
-                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100"
-                }`}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 space-y-1.5 overflow-y-auto pr-1">
+          {navigation.length === 0 ? (
+            <div className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-3 text-xs text-slate-400">
+              Tidak ada menu yang dapat diakses.
+            </div>
+          ) : (
+            navigation.map((item) => (
+              <NavigationNode
+                key={item.id}
+                item={item}
+                pathname={pathname}
+                depth={0}
+                onNavigate={() => setSidebarOpen(false)}
+              />
+            ))
+          )}
         </nav>
 
-        {/* User Info footer in Sidebar */}
         {user && (
-          <div className="border-t border-slate-800 pt-6 mt-auto">
+          <div className="mt-auto border-t border-slate-800 pt-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-800 text-indigo-400 font-bold border border-slate-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 font-bold text-indigo-400">
                 {user.name ? user.name[0]?.toUpperCase() : "A"}
               </div>
               <div className="overflow-hidden">
@@ -161,9 +173,8 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
         )}
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 lg:pl-0 pt-16 lg:pt-0 min-h-screen overflow-y-auto">
-        <div className="px-4 py-8 md:px-8 max-w-7xl mx-auto">{children}</div>
+      <main className="min-h-screen flex-1 overflow-y-auto pt-16 lg:pt-0">
+        <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">{children}</div>
       </main>
     </div>
   );

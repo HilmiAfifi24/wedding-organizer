@@ -1,8 +1,7 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "database";
-import bcrypt from "bcryptjs";
+import { createAuthUseCases } from "@/core/infrastructure/auth/auth-use-case-factory";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -18,25 +17,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const email = credentials.email as string;
-        const password = credentials.password as string;
-
-        const user = await prisma.user.findUnique({
-          where: { email },
+        const { authenticateAdminUseCase } = createAuthUseCases();
+        const user = await authenticateAdminUseCase.execute({
+          email: String(credentials.email),
+          password: String(credentials.password),
         });
 
-        if (!user || !user.passwordHash) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        if (user.role !== "ADMIN") {
-          return null;
-        }
+        if (!user) return null;
 
         return {
           id: user.id,

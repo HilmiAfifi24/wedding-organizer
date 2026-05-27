@@ -1,5 +1,3 @@
-import type { UpdateAccessMenuInput } from "@wo/shared-types";
-
 import { createAccessControlUseCases } from "@/core/infrastructure/http/access-control-factory";
 import {
   errorResponse,
@@ -7,6 +5,7 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { updateAccessMenuSchema } from "@/modules/access-control/validators/access-control";
 
 type RouteContext = {
   params: Promise<{
@@ -17,14 +16,18 @@ type RouteContext = {
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const payload = await parseJsonBody<UpdateAccessMenuInput>(request);
+    const payload = await parseJsonBody<unknown>(request);
+    const parsed = updateAccessMenuSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse(400, "Invalid payload", parsed.error.flatten());
+    }
 
-    if (payload.parentId && payload.parentId === id) {
+    if (parsed.data.parentId && parsed.data.parentId === id) {
       return errorResponse(400, "Menu parent cannot reference itself");
     }
 
     const { updateAccessMenuUseCase } = createAccessControlUseCases();
-    const updated = await updateAccessMenuUseCase.execute(id, payload);
+    const updated = await updateAccessMenuUseCase.execute(id, parsed.data);
 
     return successResponse(updated);
   } catch (error) {

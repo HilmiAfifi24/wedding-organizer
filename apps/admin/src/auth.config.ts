@@ -13,6 +13,7 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.accessProfileId = (user as { accessProfileId?: string | null }).accessProfileId ?? null;
       }
       return token;
     },
@@ -20,6 +21,7 @@ export const authConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.accessProfileId = (token.accessProfileId as string | null) ?? null;
       }
       return session;
     },

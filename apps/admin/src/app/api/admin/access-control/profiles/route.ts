@@ -1,5 +1,3 @@
-import type { CreateAccessProfileInput } from "@wo/shared-types";
-
 import { createAccessControlUseCases } from "@/core/infrastructure/http/access-control-factory";
 import {
   errorResponse,
@@ -7,6 +5,7 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { createAccessProfileSchema } from "@/modules/access-control/validators/access-control";
 
 export async function GET() {
   try {
@@ -21,18 +20,14 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const payload = await parseJsonBody<CreateAccessProfileInput>(request);
-
-    if (!payload.code?.trim() || !payload.name?.trim()) {
-      return errorResponse(400, "Field code and name are required");
+    const payload = await parseJsonBody<unknown>(request);
+    const parsed = createAccessProfileSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse(400, "Invalid payload", parsed.error.flatten());
     }
 
     const { createAccessProfileUseCase } = createAccessControlUseCases();
-    const created = await createAccessProfileUseCase.execute({
-      ...payload,
-      code: payload.code.trim(),
-      name: payload.name.trim(),
-    });
+    const created = await createAccessProfileUseCase.execute(parsed.data);
 
     return successResponse(created, 201);
   } catch (error) {

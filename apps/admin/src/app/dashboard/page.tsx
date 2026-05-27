@@ -1,18 +1,15 @@
 import React from "react";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import { getEffectiveNavigationForUser } from "@/modules/access-control/services/get-effective-navigation";
+import { requireAdminSession } from "@/modules/auth/services/require-admin-session";
 import { AdminLayout } from "@/shared/components/admin-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@wo/ui-components";
 
 export default async function DashboardPage() {
-  const session = await auth();
-
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await requireAdminSession();
+  const navigation = await getEffectiveNavigationForUser(session.user.id);
 
   return (
-    <AdminLayout user={session.user}>
+    <AdminLayout user={session.user} navigation={navigation}>
       <div className="flex justify-center items-center py-12">
         <Card className="w-full max-w-lg border border-slate-800 bg-slate-900/40 p-4 shadow-2xl backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

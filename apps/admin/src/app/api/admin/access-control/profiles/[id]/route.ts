@@ -1,11 +1,11 @@
-import type { UpdateAccessProfileInput } from "@wo/shared-types";
-
 import { createAccessControlUseCases } from "@/core/infrastructure/http/access-control-factory";
 import {
+  errorResponse,
   handleApiError,
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { updateAccessProfileSchema } from "@/modules/access-control/validators/access-control";
 
 type RouteContext = {
   params: Promise<{
@@ -16,10 +16,14 @@ type RouteContext = {
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const payload = await parseJsonBody<UpdateAccessProfileInput>(request);
+    const payload = await parseJsonBody<unknown>(request);
+    const parsed = updateAccessProfileSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse(400, "Invalid payload", parsed.error.flatten());
+    }
 
     const { updateAccessProfileUseCase } = createAccessControlUseCases();
-    const updated = await updateAccessProfileUseCase.execute(id, payload);
+    const updated = await updateAccessProfileUseCase.execute(id, parsed.data);
 
     return successResponse(updated);
   } catch (error) {

@@ -1,6 +1,7 @@
 export * from "./access-menu-repository";
 export * from "./access-profile-repository";
 export * from "./access-user-repository";
+export * from "./admin-auth-repository";
 export * from "./booking-repository";
 export * from "./category-repository";
 export * from "./payment-proof-repository";

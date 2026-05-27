@@ -10,6 +10,9 @@ Platform terdiri dari:
 2. Vendor Portal
 3. Admin Dashboard
 
+Dokumen turunan:
+- PRD Admin detail: [docs/PRD-ADMIN.md](docs/PRD-ADMIN.md)
+
 ---
 
 # 2. Product Goals
