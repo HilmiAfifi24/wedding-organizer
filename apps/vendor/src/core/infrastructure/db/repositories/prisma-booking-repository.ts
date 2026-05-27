@@ -7,37 +7,48 @@ import type {
   UpdateBookingStatusInput,
 } from "@wo/shared-types";
 
-import type { BookingRepository } from "../../domain/repositories";
+import type { BookingRepository } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaBookingRepository implements BookingRepository {
   async findById(id: string): Promise<BookingDTO | null> {
-    return prisma.booking.findUnique({ where: { id } });
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) return null;
+    return booking as unknown as BookingDTO;
   }
 
   async listByUser(userId: string, options?: ListOptions): Promise<BookingDTO[]> {
-    return prisma.booking.findMany({
+    const bookings = await prisma.booking.findMany({
       where: { userId },
       take: options?.take,
       skip: options?.skip,
       orderBy: { createdAt: "desc" },
     });
+    return bookings as unknown as BookingDTO[];
   }
 
   async listByVendor(vendorId: string, options?: ListOptions): Promise<BookingDTO[]> {
-    return prisma.booking.findMany({
+    const bookings = await prisma.booking.findMany({
       where: { vendorId },
       take: options?.take,
       skip: options?.skip,
       orderBy: { createdAt: "desc" },
     });
+    return bookings as unknown as BookingDTO[];
   }
 
   async create(data: CreateBookingInput): Promise<BookingDTO> {
-    return prisma.booking.create({ data });
+    const booking = await prisma.booking.create({ data });
+    return booking as unknown as BookingDTO;
   }
 
   async updateStatus(id: string, data: UpdateBookingStatusInput): Promise<BookingDTO> {
-    return prisma.booking.update({ where: { id }, data });
+    const booking = await prisma.booking.update({
+      where: { id },
+      data: {
+        status: data.status as any,
+      },
+    });
+    return booking as unknown as BookingDTO;
   }
 }

@@ -6,21 +6,28 @@ import type {
   PortfolioDTO,
 } from "@wo/shared-types";
 
-import type { PortfolioRepository } from "../../domain/repositories";
+import type { PortfolioRepository } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaPortfolioRepository implements PortfolioRepository {
   async listByVendor(vendorId: string, options?: ListOptions): Promise<PortfolioDTO[]> {
-    return prisma.portfolio.findMany({
+    const portfolios = await prisma.portfolio.findMany({
       where: { vendorId },
       take: options?.take,
       skip: options?.skip,
       orderBy: { createdAt: "desc" },
     });
+    return portfolios as unknown as PortfolioDTO[];
   }
 
   async create(data: CreatePortfolioInput): Promise<PortfolioDTO> {
-    return prisma.portfolio.create({ data });
+    const portfolio = await prisma.portfolio.create({
+      data: {
+        ...data,
+        mediaType: data.mediaType as any,
+      }
+    });
+    return portfolio as unknown as PortfolioDTO;
   }
 
   async remove(id: string): Promise<void> {

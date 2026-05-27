@@ -9,15 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@wo/ui-components": "file:../../packages/ui-components",
     "@wo/shared-types": "file:../../packages/shared-types",
+    "@wo/ui-components": "file:../../packages/ui-components",
+    "bcryptjs": "^2.4.3",
     "database": "file:../../packages/database",
     "next": "16.2.6",
+    "next-auth": "^5.0.0-beta.25",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
