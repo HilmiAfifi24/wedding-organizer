@@ -7,7 +7,7 @@ import type {
   VendorDTO,
 } from "@wo/shared-types";
 
-import type { VendorRepository } from "../../domain/repositories";
+import type { VendorRepository } from "@/core/domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaVendorRepository implements VendorRepository {

@@ -24,6 +24,7 @@ export interface UserDTO {
   name?: string | null;
   passwordHash?: string | null;
   role: Role;
+  accessProfileId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +115,102 @@ export interface CreateUserInput {
   name?: string;
   passwordHash?: string;
   role?: Role;
+  accessProfileId?: string;
+}
+
+export interface AccessMenuDTO {
+  id: string;
+  code: string;
+  name: string;
+  path?: string | null;
+  icon?: string | null;
+  parentId?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AccessProfileDTO {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  isSystem: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AccessPermissionDTO {
+  id: string;
+  accessProfileId: string;
+  accessMenuId: string;
+  canView: boolean;
+  canInsert: boolean;
+  canUpdate: boolean;
+  canUpsert: boolean;
+  canDelete: boolean;
+  canHistory: boolean;
+  customEvents: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AccessUserDTO {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: Role;
+  accessProfileId?: string | null;
+  accessProfileCode?: string | null;
+  accessProfileName?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateAccessMenuInput {
+  code: string;
+  name: string;
+  path?: string;
+  icon?: string;
+  parentId?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateAccessMenuInput {
+  code?: string;
+  name?: string;
+  path?: string | null;
+  icon?: string | null;
+  parentId?: string | null;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export interface CreateAccessProfileInput {
+  code: string;
+  name: string;
+  description?: string;
+  isSystem?: boolean;
+}
+
+export interface UpdateAccessProfileInput {
+  code?: string;
+  name?: string;
+  description?: string | null;
+  isSystem?: boolean;
+}
+
+export interface SetAccessPermissionInput {
+  accessMenuId: string;
+  canView?: boolean;
+  canInsert?: boolean;
+  canUpdate?: boolean;
+  canUpsert?: boolean;
+  canDelete?: boolean;
+  canHistory?: boolean;
+  customEvents?: string[];
 }
 
 export interface CreateCategoryInput {

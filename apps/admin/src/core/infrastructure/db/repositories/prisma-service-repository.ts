@@ -7,7 +7,7 @@ import type {
   UpdateServiceInput,
 } from "@wo/shared-types";
 
-import type { ServiceRepository } from "../../domain/repositories";
+import type { ServiceRepository } from "@/core/domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaServiceRepository implements ServiceRepository {

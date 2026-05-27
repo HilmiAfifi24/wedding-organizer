@@ -39,6 +39,7 @@ model User {
   name         String?
   passwordHash String?
   role         Role      @default(USER)
+  accessProfileId String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -46,6 +47,9 @@ model User {
   bookings               Booking[]
   reviews                Review[]
   verifiedPaymentProofs  PaymentProof[]
+  accessProfile          AccessProfile? @relation(fields: [accessProfileId], references: [id])
+
+  @@index([accessProfileId])
 }
 
 model Category {
@@ -162,4 +166,59 @@ model Portfolio {
   vendor Vendor @relation(fields: [vendorId], references: [id])
 
   @@index([vendorId])
+}
+
+model AccessMenu {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  path      String?
+  icon      String?
+  parentId  String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent      AccessMenu?      @relation("AccessMenuHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    AccessMenu[]     @relation("AccessMenuHierarchy")
+  permissions AccessPermission[]
+
+  @@index([parentId])
+  @@index([sortOrder])
+}
+
+model AccessProfile {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions AccessPermission[]
+}
+
+model AccessPermission {
+  id              String   @id @default(uuid())
+  accessProfileId String
+  accessMenuId    String
+  canView         Boolean  @default(false)
+  canInsert       Boolean  @default(false)
+  canUpdate       Boolean  @default(false)
+  canUpsert       Boolean  @default(false)
+  canDelete       Boolean  @default(false)
+  canHistory      Boolean  @default(false)
+  customEvents    Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  accessProfile AccessProfile @relation(fields: [accessProfileId], references: [id], onDelete: Cascade)
+  accessMenu    AccessMenu    @relation(fields: [accessMenuId], references: [id], onDelete: Cascade)
+
+  @@unique([accessProfileId, accessMenuId])
+  @@index([accessProfileId])
+  @@index([accessMenuId])
 }

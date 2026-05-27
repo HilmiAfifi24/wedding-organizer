@@ -428,6 +428,12 @@ npm install
 npm run dev
 ```
 
+## Seed Superadmin
+
+```bash
+npm run --workspace=database seed
+```
+
 ## Build Project
 
 ```bash

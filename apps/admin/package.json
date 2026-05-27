@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@wo/ui-components": "file:../../packages/ui-components",
     "@wo/shared-types": "file:../../packages/shared-types",
     "database": "file:../../packages/database",
     "next": "16.2.6",

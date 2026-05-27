@@ -6,7 +6,7 @@ import type {
   VerifyPaymentProofInput,
 } from "@wo/shared-types";
 
-import type { PaymentProofRepository } from "../../domain/repositories";
+import type { PaymentProofRepository } from "@/core/domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaPaymentProofRepository implements PaymentProofRepository {

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CreateReviewInput, ListOptions, ReviewDTO } from "@wo/shared-types";
 
-import type { ReviewRepository } from "../../domain/repositories";
+import type { ReviewRepository } from "@/core/domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaReviewRepository implements ReviewRepository {

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CategoryDTO, CreateCategoryInput } from "@wo/shared-types";
 
-import type { CategoryRepository } from "../../domain/repositories";
+import type { CategoryRepository } from "@/core/domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaCategoryRepository implements CategoryRepository {
