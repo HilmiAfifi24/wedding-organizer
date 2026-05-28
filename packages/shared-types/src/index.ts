@@ -18,6 +18,16 @@ export enum MediaType {
   VIDEO = "VIDEO",
 }
 
+export enum AuditModule {
+  USER_MANAGEMENT = "USER_MANAGEMENT",
+}
+
+export enum UserStatus {
+  ACTIVE = "ACTIVE",
+  SUSPENDED = "SUSPENDED",
+  DELETED = "DELETED",
+}
+
 export interface UserDTO {
   id: string;
   email: string;
@@ -25,8 +35,71 @@ export interface UserDTO {
   passwordHash?: string | null;
   role: Role;
   accessProfileId?: string | null;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+  suspendedAt?: Date | null;
+  suspendedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface BookingHistoryItemDTO {
+  id: string;
+  bookedAt: Date;
+  status: BookingStatus;
+  notes?: string | null;
+  vendorId: string;
+  vendorName: string;
+  serviceId?: string | null;
+  serviceName?: string | null;
+  createdAt: Date;
+}
+
+export interface AdminUserListItemDTO {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: Role;
+  status: UserStatus;
+  accessProfileId?: string | null;
+  accessProfileCode?: string | null;
+  accessProfileName?: string | null;
+  suspendedAt?: Date | null;
+  deletedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AdminUserDetailDTO extends AdminUserListItemDTO {
+  bookings: BookingHistoryItemDTO[];
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface AuditLogDTO {
+  id: string;
+  actorId: string;
+  module: AuditModule;
+  action: string;
+  targetId: string;
+  beforeData?: unknown;
+  afterData?: unknown;
+  createdAt: Date;
+}
+
+export interface CreateAuditLogInput {
+  actorId: string;
+  module: AuditModule;
+  action: string;
+  targetId: string;
+  beforeData?: unknown;
+  afterData?: unknown;
 }
 
 export interface CategoryDTO {
@@ -261,6 +334,17 @@ export interface CreateBookingInput {
 
 export interface UpdateBookingStatusInput {
   status: BookingStatus;
+}
+
+export interface AdminUsersQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  role?: Role;
+  status?: UserStatus;
+  sortBy?: "createdAt" | "updatedAt" | "name" | "email";
+  sortDirection?: "asc" | "desc";
+  includeDeleted?: boolean;
 }
 
 export interface CreatePaymentProofInput {

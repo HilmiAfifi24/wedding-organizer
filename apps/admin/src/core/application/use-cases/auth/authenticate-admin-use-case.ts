@@ -40,6 +40,10 @@ export class AuthenticateAdminUseCase {
       return null;
     }
 
+    if (user.suspendedAt || user.deletedAt) {
+      return null;
+    }
+
     const isValid = await this.passwordHasher.compare(parsed.data.password, user.passwordHash);
     if (!isValid) {
       return null;

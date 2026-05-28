@@ -7,6 +7,8 @@ export interface AdminAuthUser {
   passwordHash: string | null;
   role: Role;
   accessProfileId: string | null;
+  suspendedAt: Date | null;
+  deletedAt: Date | null;
 }
 
 export interface AdminAuthRepository {

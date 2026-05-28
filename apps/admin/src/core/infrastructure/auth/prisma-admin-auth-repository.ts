@@ -14,6 +14,8 @@ export class PrismaAdminAuthRepository implements AdminAuthRepository {
         passwordHash: true,
         role: true,
         accessProfileId: true,
+        suspendedAt: true,
+        deletedAt: true,
       },
     });
 

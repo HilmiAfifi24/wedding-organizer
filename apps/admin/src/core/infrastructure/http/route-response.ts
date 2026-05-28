@@ -18,11 +18,12 @@ export const errorResponse = (status: number, message: string, details?: unknown
     { status }
   );
 
-export const successResponse = <T>(data: T, status = 200) =>
+export const successResponse = <T>(data: T, status = 200, message = "Success") =>
   NextResponse.json(
     {
       success: true,
       data,
+      message,
     },
     { status }
   );
@@ -39,6 +40,14 @@ export const handleApiError = (error: unknown) => {
   if (error instanceof Error) {
     if (error.message === "Invalid JSON body") {
       return errorResponse(400, error.message);
+    }
+
+    if (error.message.toLowerCase().startsWith("unauthorized")) {
+      return errorResponse(401, error.message);
+    }
+
+    if (error.message.toLowerCase().startsWith("forbidden")) {
+      return errorResponse(403, error.message);
     }
 
     if (error.message.toLowerCase().includes("not found")) {

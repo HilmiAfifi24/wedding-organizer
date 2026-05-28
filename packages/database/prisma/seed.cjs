@@ -21,6 +21,13 @@ const accessMenus = [
     sortOrder: 20,
     parentCode: null,
   },
+  {
+    code: "USER_MANAGEMENT",
+    name: "Manajemen User",
+    path: "/users",
+    sortOrder: 30,
+    parentCode: null,
+  },
 ];
 
 async function seedSuperAdminProfile() {

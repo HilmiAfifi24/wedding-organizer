@@ -33,23 +33,38 @@ enum MediaType {
   VIDEO
 }
 
-model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  name         String?
-  passwordHash String?
-  role         Role      @default(USER)
-  accessProfileId String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+enum AuditModule {
+  USER_MANAGEMENT
+}
 
-  vendor                 Vendor?
-  bookings               Booking[]
-  reviews                Review[]
-  verifiedPaymentProofs  PaymentProof[]
-  accessProfile          AccessProfile? @relation(fields: [accessProfileId], references: [id])
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String?
+  passwordHash    String?
+  role            Role      @default(USER)
+  accessProfileId String?
+  deletedAt       DateTime?
+  deletedBy       String?
+  suspendedAt     DateTime?
+  suspendedBy     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  vendor                Vendor?
+  bookings              Booking[]
+  reviews               Review[]
+  verifiedPaymentProofs PaymentProof[]
+  accessProfile         AccessProfile? @relation(fields: [accessProfileId], references: [id])
+  deletedByUser         User?          @relation("DeletedUsers", fields: [deletedBy], references: [id], onDelete: SetNull)
+  deletedUsers          User[]         @relation("DeletedUsers")
+  suspendedByUser       User?          @relation("SuspendedUsers", fields: [suspendedBy], references: [id], onDelete: SetNull)
+  suspendedUsers        User[]         @relation("SuspendedUsers")
+  actorAuditLogs        AuditLog[]     @relation("ActorAuditLogs")
 
   @@index([accessProfileId])
+  @@index([deletedAt])
+  @@index([suspendedAt])
 }
 
 model Category {
@@ -221,4 +236,22 @@ model AccessPermission {
   @@unique([accessProfileId, accessMenuId])
   @@index([accessProfileId])
   @@index([accessMenuId])
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  actorId    String
+  module     AuditModule
+  action     String
+  targetId   String
+  beforeData Json?
+  afterData  Json?
+  createdAt  DateTime    @default(now())
+
+  actor User @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([actorId])
+  @@index([module, action])
+  @@index([targetId])
+  @@index([createdAt])
 }

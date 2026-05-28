@@ -235,12 +235,6 @@ export const AccessControlDashboard = () => {
           </div>
         )}
 
-        {isLoading && (
-          <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-            Memuat data akses...
-          </div>
-        )}
-
         <Tabs defaultValue="menus" className="space-y-4">
           <TabsList>
             <TabsTrigger value="menus">Menu</TabsTrigger>
