@@ -4,6 +4,7 @@ export * from "./access-user-repository";
 export * from "./admin-auth-repository";
 export * from "./user-management-repository";
 export * from "./vendor-management-repository";
+export * from "./booking-management-repository";
 export * from "./booking-repository";
 export * from "./category-repository";
 export * from "./payment-proof-repository";

@@ -21,6 +21,7 @@ export enum MediaType {
 export enum AuditModule {
   USER_MANAGEMENT = "USER_MANAGEMENT",
   VENDOR_MANAGEMENT = "VENDOR_MANAGEMENT",
+  BOOKING_MANAGEMENT = "BOOKING_MANAGEMENT",
 }
 
 export enum UserStatus {
@@ -222,6 +223,64 @@ export interface BookingDTO {
   updatedAt: Date;
 }
 
+export interface BookingStatusHistoryDTO {
+  id: string;
+  bookingId: string;
+  previousStatus?: BookingStatus | null;
+  newStatus: BookingStatus;
+  changedById?: string | null;
+  changedByName?: string | null;
+  note?: string | null;
+  createdAt: Date;
+}
+
+export interface AdminBookingListItemDTO {
+  id: string;
+  bookedAt: Date;
+  status: BookingStatus;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  userName?: string | null;
+  userEmail: string;
+  vendorId: string;
+  vendorName: string;
+  vendorStatus: VendorStatus;
+  serviceId?: string | null;
+  serviceName?: string | null;
+  hasPaymentProof: boolean;
+}
+
+export interface AdminBookingDetailDTO extends AdminBookingListItemDTO {
+  user: {
+    id: string;
+    name?: string | null;
+    email: string;
+    role: Role;
+    suspendedAt?: Date | null;
+    deletedAt?: Date | null;
+  };
+  vendor: {
+    id: string;
+    name: string;
+    status: VendorStatus;
+    categoryName?: string | null;
+    ownerName?: string | null;
+    ownerEmail?: string | null;
+    deletedAt?: Date | null;
+    suspendedAt?: Date | null;
+  };
+  service?: {
+    id: string;
+    name: string;
+    description?: string | null;
+    price: number;
+    isActive: boolean;
+  } | null;
+  paymentProof?: PaymentProofDTO | null;
+}
+
 export interface PaymentProofDTO {
   id: string;
   bookingId: string;
@@ -413,6 +472,7 @@ export interface CreateBookingInput {
 
 export interface UpdateBookingStatusInput {
   status: BookingStatus;
+  note?: string;
 }
 
 export interface AdminUsersQuery {
@@ -434,6 +494,19 @@ export interface AdminVendorsQuery {
   sortBy?: "createdAt" | "updatedAt" | "name";
   sortDirection?: "asc" | "desc";
   includeDeleted?: boolean;
+}
+
+export interface AdminBookingsQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: BookingStatus;
+  bookedFrom?: Date;
+  bookedTo?: Date;
+  vendor?: string;
+  user?: string;
+  sortBy?: "bookedAt" | "createdAt" | "updatedAt" | "status";
+  sortDirection?: "asc" | "desc";
 }
 
 export interface CreatePaymentProofInput {

@@ -36,6 +36,7 @@ enum MediaType {
 enum AuditModule {
   USER_MANAGEMENT
   VENDOR_MANAGEMENT
+  BOOKING_MANAGEMENT
 }
 
 enum VendorStatus {
@@ -69,6 +70,7 @@ model User {
   suspendedByUser       User?          @relation("SuspendedUsers", fields: [suspendedBy], references: [id], onDelete: SetNull)
   suspendedUsers        User[]         @relation("SuspendedUsers")
   actorAuditLogs        AuditLog[]     @relation("ActorAuditLogs")
+  changedBookingStatuses BookingStatusHistory[] @relation("BookingStatusChangedBy")
   approvedVendors       Vendor[]       @relation("VendorApprovedBy")
   rejectedVendors       Vendor[]       @relation("VendorRejectedBy")
   suspendedVendors      Vendor[]       @relation("VendorSuspendedBy")
@@ -158,11 +160,28 @@ model Booking {
   vendor      Vendor       @relation(fields: [vendorId], references: [id])
   service     Service?     @relation(fields: [serviceId], references: [id])
   paymentProof PaymentProof?
+  statusHistory BookingStatusHistory[]
   review      Review?
 
   @@index([userId])
   @@index([vendorId])
   @@index([serviceId])
+}
+
+model BookingStatusHistory {
+  id             String        @id @default(uuid())
+  bookingId      String
+  previousStatus BookingStatus?
+  newStatus      BookingStatus
+  changedById    String?
+  note           String?
+  createdAt      DateTime      @default(now())
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  changedBy User?   @relation("BookingStatusChangedBy", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([bookingId, createdAt])
+  @@index([changedById])
 }
 
 model PaymentProof {

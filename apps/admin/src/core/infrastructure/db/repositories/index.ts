@@ -2,6 +2,7 @@ export * from "./prisma-access-menu-repository";
 export * from "./prisma-access-profile-repository";
 export * from "./prisma-access-user-repository";
 export * from "./prisma-booking-repository";
+export * from "./prisma-booking-management-repository";
 export * from "./prisma-category-repository";
 export * from "./prisma-payment-proof-repository";
 export * from "./prisma-portfolio-repository";

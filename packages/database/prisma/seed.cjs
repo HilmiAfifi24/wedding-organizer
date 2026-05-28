@@ -35,6 +35,13 @@ const accessMenus = [
     sortOrder: 40,
     parentCode: null,
   },
+  {
+    code: "BOOKING_MANAGEMENT",
+    name: "Manajemen Booking",
+    path: "/bookings",
+    sortOrder: 50,
+    parentCode: null,
+  },
 ];
 
 async function seedSuperAdminProfile() {
