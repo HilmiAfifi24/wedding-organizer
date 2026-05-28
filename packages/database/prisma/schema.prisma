@@ -35,6 +35,14 @@ enum MediaType {
 
 enum AuditModule {
   USER_MANAGEMENT
+  VENDOR_MANAGEMENT
+}
+
+enum VendorStatus {
+  PENDING_VERIFICATION
+  APPROVED
+  REJECTED
+  SUSPENDED
 }
 
 model User {
@@ -61,6 +69,10 @@ model User {
   suspendedByUser       User?          @relation("SuspendedUsers", fields: [suspendedBy], references: [id], onDelete: SetNull)
   suspendedUsers        User[]         @relation("SuspendedUsers")
   actorAuditLogs        AuditLog[]     @relation("ActorAuditLogs")
+  approvedVendors       Vendor[]       @relation("VendorApprovedBy")
+  rejectedVendors       Vendor[]       @relation("VendorRejectedBy")
+  suspendedVendors      Vendor[]       @relation("VendorSuspendedBy")
+  deletedVendors        Vendor[]       @relation("VendorDeletedBy")
 
   @@index([accessProfileId])
   @@index([deletedAt])
@@ -77,25 +89,42 @@ model Category {
 }
 
 model Vendor {
-  id          String   @id @default(uuid())
-  ownerId     String   @unique
-  name        String
-  description String?
-  location    String?
-  contactInfo String?
-  priceRange  String?
-  categoryId  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String       @id @default(uuid())
+  ownerId          String       @unique
+  name             String
+  description      String?
+  location         String?
+  contactInfo      String?
+  phoneNumber      String?
+  priceRange       String?
+  categoryId       String?
+  status           VendorStatus @default(PENDING_VERIFICATION)
+  approvedAt       DateTime?
+  approvedBy       String?
+  rejectedAt       DateTime?
+  rejectedBy       String?
+  rejectionReason  String?
+  suspendedAt      DateTime?
+  suspendedBy      String?
+  deletedAt        DateTime?
+  deletedBy        String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  owner     User      @relation(fields: [ownerId], references: [id])
-  category  Category? @relation(fields: [categoryId], references: [id])
-  services  Service[]
-  bookings  Booking[]
-  reviews   Review[]
-  portfolio Portfolio[]
+  owner            User         @relation(fields: [ownerId], references: [id])
+  category         Category?    @relation(fields: [categoryId], references: [id])
+  approvedByUser   User?        @relation("VendorApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
+  rejectedByUser   User?        @relation("VendorRejectedBy", fields: [rejectedBy], references: [id], onDelete: SetNull)
+  suspendedByUser  User?        @relation("VendorSuspendedBy", fields: [suspendedBy], references: [id], onDelete: SetNull)
+  deletedByUser    User?        @relation("VendorDeletedBy", fields: [deletedBy], references: [id], onDelete: SetNull)
+  services         Service[]
+  bookings         Booking[]
+  reviews          Review[]
+  portfolio        Portfolio[]
 
   @@index([categoryId])
+  @@index([status])
+  @@index([deletedAt])
 }
 
 model Service {

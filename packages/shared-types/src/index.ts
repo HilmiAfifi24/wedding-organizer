@@ -20,12 +20,20 @@ export enum MediaType {
 
 export enum AuditModule {
   USER_MANAGEMENT = "USER_MANAGEMENT",
+  VENDOR_MANAGEMENT = "VENDOR_MANAGEMENT",
 }
 
 export enum UserStatus {
   ACTIVE = "ACTIVE",
   SUSPENDED = "SUSPENDED",
   DELETED = "DELETED",
+}
+
+export enum VendorStatus {
+  PENDING_VERIFICATION = "pending_verification",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  SUSPENDED = "suspended",
 }
 
 export interface UserDTO {
@@ -116,10 +124,79 @@ export interface VendorDTO {
   description?: string | null;
   location?: string | null;
   contactInfo?: string | null;
+  phoneNumber?: string | null;
   priceRange?: string | null;
   categoryId?: string | null;
+  status: VendorStatus;
+  approvedAt?: Date | null;
+  approvedBy?: string | null;
+  rejectedAt?: Date | null;
+  rejectedBy?: string | null;
+  rejectionReason?: string | null;
+  suspendedAt?: Date | null;
+  suspendedBy?: string | null;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface VendorVerificationChecklistDTO {
+  businessNameExists: boolean;
+  categoryExists: boolean;
+  phoneNumberValid: boolean;
+  hasMinimumService: boolean;
+  hasMinimumPortfolio: boolean;
+  isComplete: boolean;
+}
+
+export interface AdminVendorListItemDTO {
+  id: string;
+  name: string;
+  status: VendorStatus;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  ownerId: string;
+  ownerName?: string | null;
+  ownerEmail: string;
+  phoneNumber?: string | null;
+  deletedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AdminVendorServicePreviewDTO {
+  id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  isActive: boolean;
+}
+
+export interface AdminVendorPortfolioPreviewDTO {
+  id: string;
+  title?: string | null;
+  description?: string | null;
+  mediaUrl: string;
+  mediaType: MediaType;
+}
+
+export interface AdminVendorDetailDTO extends AdminVendorListItemDTO {
+  description?: string | null;
+  location?: string | null;
+  contactInfo?: string | null;
+  priceRange?: string | null;
+  approvedAt?: Date | null;
+  approvedBy?: string | null;
+  rejectedAt?: Date | null;
+  rejectedBy?: string | null;
+  rejectionReason?: string | null;
+  suspendedAt?: Date | null;
+  suspendedBy?: string | null;
+  checklist: VendorVerificationChecklistDTO;
+  services: AdminVendorServicePreviewDTO[];
+  portfolio: AdminVendorPortfolioPreviewDTO[];
+  history?: AuditLogDTO[];
 }
 
 export interface ServiceDTO {
@@ -296,6 +373,7 @@ export interface CreateVendorInput {
   description?: string;
   location?: string;
   contactInfo?: string;
+  phoneNumber?: string;
   priceRange?: string;
   categoryId?: string;
 }
@@ -305,6 +383,7 @@ export interface UpdateVendorInput {
   description?: string;
   location?: string;
   contactInfo?: string;
+  phoneNumber?: string | null;
   priceRange?: string;
   categoryId?: string | null;
 }
@@ -343,6 +422,16 @@ export interface AdminUsersQuery {
   role?: Role;
   status?: UserStatus;
   sortBy?: "createdAt" | "updatedAt" | "name" | "email";
+  sortDirection?: "asc" | "desc";
+  includeDeleted?: boolean;
+}
+
+export interface AdminVendorsQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: VendorStatus;
+  sortBy?: "createdAt" | "updatedAt" | "name";
   sortDirection?: "asc" | "desc";
   includeDeleted?: boolean;
 }

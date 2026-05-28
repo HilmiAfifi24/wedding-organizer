@@ -28,6 +28,13 @@ const accessMenus = [
     sortOrder: 30,
     parentCode: null,
   },
+  {
+    code: "VENDOR_MANAGEMENT",
+    name: "Manajemen Vendor",
+    path: "/vendors",
+    sortOrder: 40,
+    parentCode: null,
+  },
 ];
 
 async function seedSuperAdminProfile() {

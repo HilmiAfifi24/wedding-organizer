@@ -8,5 +8,6 @@ export * from "./prisma-portfolio-repository";
 export * from "./prisma-review-repository";
 export * from "./prisma-service-repository";
 export * from "./prisma-user-management-repository";
+export * from "./prisma-vendor-management-repository";
 export * from "./prisma-user-repository";
 export * from "./prisma-vendor-repository";
