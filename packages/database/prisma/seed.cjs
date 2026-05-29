@@ -42,6 +42,13 @@ const accessMenus = [
     sortOrder: 50,
     parentCode: null,
   },
+  {
+    code: "PAYMENT_MONITORING",
+    name: "Monitoring Pembayaran",
+    path: "/payments",
+    sortOrder: 60,
+    parentCode: null,
+  },
 ];
 
 async function seedSuperAdminProfile() {

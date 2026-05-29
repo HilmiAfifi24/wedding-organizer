@@ -22,7 +22,41 @@ export class PrismaPaymentProofRepository implements PaymentProofRepository {
   }
 
   async verify(id: string, data: VerifyPaymentProofInput): Promise<PaymentProofDTO> {
-    const proof = await prisma.paymentProof.update({ where: { id }, data });
+    const proof = await prisma.$transaction(async (tx) => {
+      const current = await tx.paymentProof.findUnique({
+        where: { id },
+        select: {
+          status: true,
+        },
+      });
+
+      const updated = await tx.paymentProof.update({
+        where: { id },
+        data: {
+          status: "VERIFIED",
+          verifiedById: data.verifiedById,
+          verifiedAt: data.verifiedAt ?? new Date(),
+          verificationNote: data.verificationNote ?? null,
+          rejectedById: null,
+          rejectedAt: null,
+          rejectionReason: null,
+        },
+      });
+
+      await tx.paymentProofStatusHistory.create({
+        data: {
+          paymentProofId: id,
+          previousStatus: current?.status ?? null,
+          newStatus: "VERIFIED",
+          changedById: data.verifiedById,
+          note: data.verificationNote ?? null,
+          isOverride: false,
+        },
+      });
+
+      return updated;
+    });
+
     return proof as unknown as PaymentProofDTO;
   }
 }

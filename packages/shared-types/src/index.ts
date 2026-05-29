@@ -18,10 +18,17 @@ export enum MediaType {
   VIDEO = "VIDEO",
 }
 
+export enum PaymentProofStatus {
+  PENDING = "PENDING",
+  VERIFIED = "VERIFIED",
+  REJECTED = "REJECTED",
+}
+
 export enum AuditModule {
   USER_MANAGEMENT = "USER_MANAGEMENT",
   VENDOR_MANAGEMENT = "VENDOR_MANAGEMENT",
   BOOKING_MANAGEMENT = "BOOKING_MANAGEMENT",
+  PAYMENT_MONITORING = "PAYMENT_MONITORING",
 }
 
 export enum UserStatus {
@@ -286,10 +293,84 @@ export interface PaymentProofDTO {
   bookingId: string;
   fileUrl: string;
   note?: string | null;
+  status: PaymentProofStatus;
   verifiedById?: string | null;
   verifiedAt?: Date | null;
+  rejectedById?: string | null;
+  rejectedAt?: Date | null;
+  rejectionReason?: string | null;
+  verificationNote?: string | null;
+  overriddenById?: string | null;
+  overriddenAt?: Date | null;
+  overrideReason?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface PaymentProofStatusHistoryDTO {
+  id: string;
+  paymentProofId: string;
+  previousStatus?: PaymentProofStatus | null;
+  newStatus: PaymentProofStatus;
+  changedById?: string | null;
+  changedByName?: string | null;
+  note?: string | null;
+  isOverride: boolean;
+  createdAt: Date;
+}
+
+export interface AdminPaymentProofListItemDTO {
+  id: string;
+  bookingId: string;
+  paymentProofStatus: PaymentProofStatus;
+  bookingStatus: BookingStatus;
+  fileUrl: string;
+  uploadedAt: Date;
+  updatedAt: Date;
+  userId: string;
+  userName?: string | null;
+  userEmail: string;
+  vendorId: string;
+  vendorName: string;
+  vendorStatus: VendorStatus;
+  verifiedAt?: Date | null;
+  rejectedAt?: Date | null;
+  overriddenAt?: Date | null;
+}
+
+export interface AdminPaymentProofDetailDTO extends AdminPaymentProofListItemDTO {
+  note?: string | null;
+  verificationNote?: string | null;
+  rejectionReason?: string | null;
+  overrideReason?: string | null;
+  verifiedById?: string | null;
+  verifiedByName?: string | null;
+  rejectedById?: string | null;
+  rejectedByName?: string | null;
+  overriddenById?: string | null;
+  overriddenByName?: string | null;
+  booking: {
+    id: string;
+    bookedAt: Date;
+    status: BookingStatus;
+    notes?: string | null;
+    serviceId?: string | null;
+    serviceName?: string | null;
+  };
+  user: {
+    id: string;
+    name?: string | null;
+    email: string;
+    role: Role;
+  };
+  vendor: {
+    id: string;
+    name: string;
+    status: VendorStatus;
+    ownerName?: string | null;
+    ownerEmail?: string | null;
+    categoryName?: string | null;
+  };
 }
 
 export interface ReviewDTO {
@@ -518,6 +599,20 @@ export interface CreatePaymentProofInput {
 export interface VerifyPaymentProofInput {
   verifiedById: string;
   verifiedAt?: Date;
+  verificationNote?: string;
+}
+
+export interface AdminPaymentProofsQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  paymentProofStatus?: PaymentProofStatus;
+  bookingStatus?: BookingStatus;
+  vendor?: string;
+  uploadedFrom?: Date;
+  uploadedTo?: Date;
+  sortBy?: "createdAt" | "updatedAt" | "status" | "verifiedAt";
+  sortDirection?: "asc" | "desc";
 }
 
 export interface CreateReviewInput {

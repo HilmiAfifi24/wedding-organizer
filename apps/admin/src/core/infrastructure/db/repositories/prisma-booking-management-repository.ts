@@ -10,6 +10,7 @@ import type {
   BookingStatusHistoryDTO,
   CreateAuditLogInput,
   PaymentProofDTO,
+  PaymentProofStatus,
   Role,
 } from "@wo/shared-types";
 
@@ -48,6 +49,7 @@ type PrismaBookingListRecord = {
 };
 
 const mapBookingStatus = (status: string) => status as BookingStatus;
+const mapPaymentStatus = (status: string) => status as PaymentProofStatus;
 
 const mapPaymentProof = (
   paymentProof:
@@ -56,8 +58,16 @@ const mapPaymentProof = (
         bookingId: string;
         fileUrl: string;
         note: string | null;
+        status: string;
         verifiedById: string | null;
         verifiedAt: Date | null;
+        rejectedById: string | null;
+        rejectedAt: Date | null;
+        rejectionReason: string | null;
+        verificationNote: string | null;
+        overriddenById: string | null;
+        overriddenAt: Date | null;
+        overrideReason: string | null;
         createdAt: Date;
         updatedAt: Date;
       }
@@ -73,8 +83,16 @@ const mapPaymentProof = (
     bookingId: paymentProof.bookingId,
     fileUrl: paymentProof.fileUrl,
     note: paymentProof.note,
+    status: mapPaymentStatus(paymentProof.status),
     verifiedById: paymentProof.verifiedById,
     verifiedAt: paymentProof.verifiedAt,
+    rejectedById: paymentProof.rejectedById,
+    rejectedAt: paymentProof.rejectedAt,
+    rejectionReason: paymentProof.rejectionReason,
+    verificationNote: paymentProof.verificationNote,
+    overriddenById: paymentProof.overriddenById,
+    overriddenAt: paymentProof.overriddenAt,
+    overrideReason: paymentProof.overrideReason,
     createdAt: paymentProof.createdAt,
     updatedAt: paymentProof.updatedAt,
   };
@@ -293,8 +311,16 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
             bookingId: true,
             fileUrl: true,
             note: true,
+            status: true,
             verifiedById: true,
             verifiedAt: true,
+            rejectedById: true,
+            rejectedAt: true,
+            rejectionReason: true,
+            verificationNote: true,
+            overriddenById: true,
+            overriddenAt: true,
+            overrideReason: true,
             createdAt: true,
             updatedAt: true,
           },
