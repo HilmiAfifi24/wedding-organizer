@@ -49,6 +49,20 @@ const accessMenus = [
     sortOrder: 60,
     parentCode: null,
   },
+  {
+    code: "REVIEW_MODERATION",
+    name: "Moderasi Review",
+    path: "/reviews",
+    sortOrder: 70,
+    parentCode: null,
+  },
+  {
+    code: "AUDIT_LOG_DASHBOARD",
+    name: "Audit Log",
+    path: "/audit-logs",
+    sortOrder: 80,
+    parentCode: null,
+  },
 ];
 
 async function seedSuperAdminProfile() {

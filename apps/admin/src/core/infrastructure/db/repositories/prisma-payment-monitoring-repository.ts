@@ -13,6 +13,7 @@ import type {
   Role,
 } from "@wo/shared-types";
 
+import { sanitizeAuditValue } from "@/core/domain/entities/audit-log-dashboard";
 import {
   mapPrismaPaymentProofStatusToDto,
   mapPrismaVendorStatusToDto,
@@ -584,8 +585,10 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         module: data.module,
         action: data.action,
         targetId: data.targetId,
-        beforeData: toJsonValue(data.beforeData),
-        afterData: toJsonValue(data.afterData),
+        beforeData: toJsonValue(sanitizeAuditValue(data.beforeData)),
+        afterData: toJsonValue(sanitizeAuditValue(data.afterData)),
+        ipAddress: data.ipAddress ?? null,
+        userAgent: data.userAgent ?? null,
       },
     });
 
@@ -597,6 +600,8 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
       targetId: auditLog.targetId,
       beforeData: auditLog.beforeData,
       afterData: auditLog.afterData,
+      ipAddress: auditLog.ipAddress,
+      userAgent: auditLog.userAgent,
       createdAt: auditLog.createdAt,
     };
   }

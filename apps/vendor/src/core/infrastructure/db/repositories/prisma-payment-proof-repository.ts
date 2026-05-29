@@ -3,22 +3,54 @@ import "server-only";
 import type {
   CreatePaymentProofInput,
   PaymentProofDTO,
+  PaymentProofStatus,
   VerifyPaymentProofInput,
 } from "@wo/shared-types";
 
 import type { PaymentProofRepository } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
+const mapPaymentProof = (
+  paymentProof:
+    | {
+        id: string;
+        bookingId: string;
+        fileUrl: string;
+        note: string | null;
+        status: string;
+        verifiedById: string | null;
+        verifiedAt: Date | null;
+        rejectedById: string | null;
+        rejectedAt: Date | null;
+        rejectionReason: string | null;
+        verificationNote: string | null;
+        overriddenById: string | null;
+        overriddenAt: Date | null;
+        overrideReason: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      }
+    | null
+): PaymentProofDTO | null => {
+  if (!paymentProof) {
+    return null;
+  }
+
+  return {
+    ...paymentProof,
+    status: paymentProof.status as PaymentProofStatus,
+  };
+};
+
 export class PrismaPaymentProofRepository implements PaymentProofRepository {
   async findByBookingId(bookingId: string): Promise<PaymentProofDTO | null> {
     const proof = await prisma.paymentProof.findUnique({ where: { bookingId } });
-    if (!proof) return null;
-    return proof as unknown as PaymentProofDTO;
+    return mapPaymentProof(proof);
   }
 
   async create(data: CreatePaymentProofInput): Promise<PaymentProofDTO> {
     const proof = await prisma.paymentProof.create({ data });
-    return proof as unknown as PaymentProofDTO;
+    return mapPaymentProof(proof) as PaymentProofDTO;
   }
 
   async verify(id: string, data: VerifyPaymentProofInput): Promise<PaymentProofDTO> {
@@ -57,6 +89,6 @@ export class PrismaPaymentProofRepository implements PaymentProofRepository {
       return updated;
     });
 
-    return proof as unknown as PaymentProofDTO;
+    return mapPaymentProof(proof) as PaymentProofDTO;
   }
 }

@@ -24,11 +24,24 @@ export enum PaymentProofStatus {
   REJECTED = "REJECTED",
 }
 
+export enum ReviewStatus {
+  VISIBLE = "VISIBLE",
+  HIDDEN = "HIDDEN",
+  DELETED = "DELETED",
+}
+
+export enum ReviewModerationAction {
+  HIDE = "HIDE",
+  UNHIDE = "UNHIDE",
+  DELETE = "DELETE",
+}
+
 export enum AuditModule {
   USER_MANAGEMENT = "USER_MANAGEMENT",
   VENDOR_MANAGEMENT = "VENDOR_MANAGEMENT",
   BOOKING_MANAGEMENT = "BOOKING_MANAGEMENT",
   PAYMENT_MONITORING = "PAYMENT_MONITORING",
+  REVIEW_MODERATION = "REVIEW_MODERATION",
 }
 
 export enum UserStatus {
@@ -106,6 +119,8 @@ export interface AuditLogDTO {
   targetId: string;
   beforeData?: unknown;
   afterData?: unknown;
+  ipAddress?: string | null;
+  userAgent?: string | null;
   createdAt: Date;
 }
 
@@ -116,7 +131,17 @@ export interface CreateAuditLogInput {
   targetId: string;
   beforeData?: unknown;
   afterData?: unknown;
+  ipAddress?: string;
+  userAgent?: string;
 }
+
+export interface AdminAuditLogListItemDTO extends AuditLogDTO {
+  actorName?: string | null;
+  actorEmail: string;
+  targetPath?: string | null;
+}
+
+export interface AdminAuditLogDetailDTO extends AdminAuditLogListItemDTO {}
 
 export interface CategoryDTO {
   id: string;
@@ -380,8 +405,74 @@ export interface ReviewDTO {
   vendorId: string;
   rating: number;
   comment?: string | null;
+  status: ReviewStatus;
+  hiddenAt?: Date | null;
+  hiddenById?: string | null;
+  deletedAt?: Date | null;
+  deletedById?: string | null;
+  moderationReason?: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ReviewModerationHistoryDTO {
+  id: string;
+  reviewId: string;
+  action: ReviewModerationAction;
+  reason?: string | null;
+  actorId?: string | null;
+  actorName?: string | null;
+  beforeData?: unknown;
+  afterData?: unknown;
+  createdAt: Date;
+}
+
+export interface AdminReviewListItemDTO {
+  id: string;
+  bookingId: string;
+  rating: number;
+  comment?: string | null;
+  status: ReviewStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  reviewerId: string;
+  reviewerName?: string | null;
+  reviewerEmail: string;
+  vendorId: string;
+  vendorName: string;
+  bookingStatus: BookingStatus;
+}
+
+export interface AdminReviewDetailDTO extends AdminReviewListItemDTO {
+  moderationReason?: string | null;
+  hiddenAt?: Date | null;
+  hiddenById?: string | null;
+  hiddenByName?: string | null;
+  deletedAt?: Date | null;
+  deletedById?: string | null;
+  deletedByName?: string | null;
+  booking: {
+    id: string;
+    bookedAt: Date;
+    status: BookingStatus;
+    notes?: string | null;
+    serviceId?: string | null;
+    serviceName?: string | null;
+  };
+  user: {
+    id: string;
+    name?: string | null;
+    email: string;
+    role: Role;
+  };
+  vendor: {
+    id: string;
+    name: string;
+    status: VendorStatus;
+    ownerName?: string | null;
+    ownerEmail?: string | null;
+    categoryName?: string | null;
+  };
 }
 
 export interface PortfolioDTO {
@@ -612,6 +703,32 @@ export interface AdminPaymentProofsQuery {
   uploadedFrom?: Date;
   uploadedTo?: Date;
   sortBy?: "createdAt" | "updatedAt" | "status" | "verifiedAt";
+  sortDirection?: "asc" | "desc";
+}
+
+export interface AdminReviewsQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: ReviewStatus;
+  rating?: number;
+  vendor?: string;
+  createdFrom?: Date;
+  createdTo?: Date;
+  sortBy?: "createdAt" | "updatedAt" | "rating" | "status";
+  sortDirection?: "asc" | "desc";
+}
+
+export interface AdminAuditLogsQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  module?: AuditModule;
+  action?: string;
+  actor?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  sortBy?: "createdAt";
   sortDirection?: "asc" | "desc";
 }
 

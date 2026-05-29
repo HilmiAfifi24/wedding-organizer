@@ -9,6 +9,7 @@ import type {
   MediaType,
 } from "@wo/shared-types";
 
+import { sanitizeAuditValue } from "@/core/domain/entities/audit-log-dashboard";
 import {
   evaluateVendorVerificationChecklist,
   mapDtoVendorStatusToPrisma,
@@ -392,8 +393,10 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
         module: data.module,
         action: data.action,
         targetId: data.targetId,
-        beforeData: toJsonValue(data.beforeData),
-        afterData: toJsonValue(data.afterData),
+        beforeData: toJsonValue(sanitizeAuditValue(data.beforeData)),
+        afterData: toJsonValue(sanitizeAuditValue(data.afterData)),
+        ipAddress: data.ipAddress ?? null,
+        userAgent: data.userAgent ?? null,
       },
     });
 
@@ -405,6 +408,8 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       targetId: log.targetId,
       beforeData: log.beforeData,
       afterData: log.afterData,
+      ipAddress: log.ipAddress,
+      userAgent: log.userAgent,
       createdAt: log.createdAt,
     };
   }

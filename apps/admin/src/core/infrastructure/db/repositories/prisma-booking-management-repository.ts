@@ -14,6 +14,7 @@ import type {
   Role,
 } from "@wo/shared-types";
 
+import { sanitizeAuditValue } from "@/core/domain/entities/audit-log-dashboard";
 import {
   mapPrismaVendorStatusToDto,
   type BookingPermissionFlags,
@@ -471,8 +472,10 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
         module: data.module,
         action: data.action,
         targetId: data.targetId,
-        beforeData: toJsonValue(data.beforeData),
-        afterData: toJsonValue(data.afterData),
+        beforeData: toJsonValue(sanitizeAuditValue(data.beforeData)),
+        afterData: toJsonValue(sanitizeAuditValue(data.afterData)),
+        ipAddress: data.ipAddress ?? null,
+        userAgent: data.userAgent ?? null,
       },
     });
 
@@ -484,6 +487,8 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
       targetId: auditLog.targetId,
       beforeData: auditLog.beforeData,
       afterData: auditLog.afterData,
+      ipAddress: auditLog.ipAddress,
+      userAgent: auditLog.userAgent,
       createdAt: auditLog.createdAt,
     };
   }

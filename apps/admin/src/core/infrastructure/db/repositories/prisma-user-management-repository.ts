@@ -10,6 +10,7 @@ import type {
   UserStatus,
 } from "@wo/shared-types";
 
+import { sanitizeAuditValue } from "@/core/domain/entities/audit-log-dashboard";
 import { getUserStatus, type PermissionFlags } from "@/core/domain/entities/user-management";
 import type { UserManagementRepository } from "@/core/domain/repositories";
 
@@ -290,8 +291,10 @@ export class PrismaUserManagementRepository implements UserManagementRepository 
         module: data.module,
         action: data.action,
         targetId: data.targetId,
-        beforeData: toJsonValue(data.beforeData),
-        afterData: toJsonValue(data.afterData),
+        beforeData: toJsonValue(sanitizeAuditValue(data.beforeData)),
+        afterData: toJsonValue(sanitizeAuditValue(data.afterData)),
+        ipAddress: data.ipAddress ?? null,
+        userAgent: data.userAgent ?? null,
       },
     });
 
@@ -303,6 +306,8 @@ export class PrismaUserManagementRepository implements UserManagementRepository 
       targetId: log.targetId,
       beforeData: log.beforeData,
       afterData: log.afterData,
+      ipAddress: log.ipAddress,
+      userAgent: log.userAgent,
       createdAt: log.createdAt,
     };
   }

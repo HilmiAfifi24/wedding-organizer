@@ -39,11 +39,24 @@ enum PaymentProofStatus {
   REJECTED
 }
 
+enum ReviewStatus {
+  VISIBLE
+  HIDDEN
+  DELETED
+}
+
+enum ReviewModerationAction {
+  HIDE
+  UNHIDE
+  DELETE
+}
+
 enum AuditModule {
   USER_MANAGEMENT
   VENDOR_MANAGEMENT
   BOOKING_MANAGEMENT
   PAYMENT_MONITORING
+  REVIEW_MODERATION
 }
 
 enum VendorStatus {
@@ -81,6 +94,9 @@ model User {
   rejectedPaymentProofs PaymentProof[] @relation("RejectedPaymentProofs")
   overriddenPaymentProofs PaymentProof[] @relation("OverriddenPaymentProofs")
   changedPaymentProofStatuses PaymentProofStatusHistory[] @relation("PaymentProofStatusChangedBy")
+  hiddenReviews          Review[]                   @relation("HiddenReviews")
+  deletedReviews         Review[]                   @relation("DeletedReviews")
+  moderatedReviews       ReviewModerationHistory[]  @relation("ReviewModeratedBy")
   approvedVendors       Vendor[]       @relation("VendorApprovedBy")
   rejectedVendors       Vendor[]       @relation("VendorRejectedBy")
   suspendedVendors      Vendor[]       @relation("VendorSuspendedBy")
@@ -242,21 +258,50 @@ model PaymentProofStatusHistory {
 }
 
 model Review {
-  id        String   @id @default(uuid())
-  bookingId String   @unique
-  userId    String
-  vendorId  String
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String       @id @default(uuid())
+  bookingId        String       @unique
+  userId           String
+  vendorId         String
+  rating           Int
+  comment          String?
+  status           ReviewStatus @default(VISIBLE)
+  hiddenAt         DateTime?
+  hiddenById       String?
+  deletedAt        DateTime?
+  deletedById      String?
+  moderationReason String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  booking Booking @relation(fields: [bookingId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
-  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+  booking          Booking                    @relation(fields: [bookingId], references: [id])
+  user             User                       @relation(fields: [userId], references: [id])
+  vendor           Vendor                     @relation(fields: [vendorId], references: [id])
+  hiddenBy         User?                      @relation("HiddenReviews", fields: [hiddenById], references: [id], onDelete: SetNull)
+  deletedBy        User?                      @relation("DeletedReviews", fields: [deletedById], references: [id], onDelete: SetNull)
+  moderationHistory ReviewModerationHistory[]
 
   @@index([userId])
   @@index([vendorId])
+  @@index([status])
+  @@index([hiddenAt])
+  @@index([deletedAt])
+}
+
+model ReviewModerationHistory {
+  id         String                 @id @default(uuid())
+  reviewId    String
+  action      ReviewModerationAction
+  reason      String?
+  actorId     String?
+  beforeData  Json?
+  afterData   Json?
+  createdAt   DateTime              @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  actor  User?  @relation("ReviewModeratedBy", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([reviewId, createdAt])
+  @@index([actorId])
 }
 
 model Portfolio {
@@ -337,6 +382,8 @@ model AuditLog {
   targetId   String
   beforeData Json?
   afterData  Json?
+  ipAddress  String?
+  userAgent  String?
   createdAt  DateTime    @default(now())
 
   actor User @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)

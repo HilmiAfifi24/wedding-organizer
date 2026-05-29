@@ -3,23 +3,58 @@ import "server-only";
 import type {
   CreatePaymentProofInput,
   PaymentProofDTO,
+  PaymentProofStatus,
   VerifyPaymentProofInput,
 } from "@wo/shared-types";
 
 import type { PaymentProofRepository } from "../../domain/repositories";
 import { prisma } from "../prisma";
 
+const mapPaymentProof = (
+  paymentProof:
+    | {
+        id: string;
+        bookingId: string;
+        fileUrl: string;
+        note: string | null;
+        status: string;
+        verifiedById: string | null;
+        verifiedAt: Date | null;
+        rejectedById: string | null;
+        rejectedAt: Date | null;
+        rejectionReason: string | null;
+        verificationNote: string | null;
+        overriddenById: string | null;
+        overriddenAt: Date | null;
+        overrideReason: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      }
+    | null
+): PaymentProofDTO | null => {
+  if (!paymentProof) {
+    return null;
+  }
+
+  return {
+    ...paymentProof,
+    status: paymentProof.status as PaymentProofStatus,
+  };
+};
+
 export class PrismaPaymentProofRepository implements PaymentProofRepository {
   async findByBookingId(bookingId: string): Promise<PaymentProofDTO | null> {
-    return prisma.paymentProof.findUnique({ where: { bookingId } });
+    const paymentProof = await prisma.paymentProof.findUnique({ where: { bookingId } });
+    return mapPaymentProof(paymentProof);
   }
 
   async create(data: CreatePaymentProofInput): Promise<PaymentProofDTO> {
-    return prisma.paymentProof.create({ data });
+    const paymentProof = await prisma.paymentProof.create({ data });
+    return mapPaymentProof(paymentProof) as PaymentProofDTO;
   }
 
   async verify(id: string, data: VerifyPaymentProofInput): Promise<PaymentProofDTO> {
-    return prisma.$transaction(async (tx) => {
+    const paymentProof = await prisma.$transaction(async (tx) => {
       const current = await tx.paymentProof.findUnique({
         where: { id },
         select: {
@@ -53,5 +88,7 @@ export class PrismaPaymentProofRepository implements PaymentProofRepository {
 
       return paymentProof;
     });
+
+    return mapPaymentProof(paymentProof) as PaymentProofDTO;
   }
 }
