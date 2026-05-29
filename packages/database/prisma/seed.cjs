@@ -17,7 +17,7 @@ const accessMenus = [
   {
     code: "ACCESS_CONTROL",
     name: "Administrasi Akses",
-    path: "/",
+    path: "/access-control",
     sortOrder: 20,
     parentCode: null,
   },

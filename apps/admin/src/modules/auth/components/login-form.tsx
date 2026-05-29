@@ -39,7 +39,7 @@ export function LoginForm() {
       if (res?.error) {
         setError("Email/password salah, atau Anda tidak memiliki hak akses Administrator.");
       } else {
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch {

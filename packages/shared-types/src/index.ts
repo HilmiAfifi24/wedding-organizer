@@ -44,6 +44,13 @@ export enum AuditModule {
   REVIEW_MODERATION = "REVIEW_MODERATION",
 }
 
+export enum DashboardTimeRange {
+  TODAY = "TODAY",
+  LAST_7_DAYS = "LAST_7_DAYS",
+  LAST_30_DAYS = "LAST_30_DAYS",
+  LAST_90_DAYS = "LAST_90_DAYS",
+}
+
 export enum UserStatus {
   ACTIVE = "ACTIVE",
   SUSPENDED = "SUSPENDED",
@@ -142,6 +149,111 @@ export interface AdminAuditLogListItemDTO extends AuditLogDTO {
 }
 
 export interface AdminAuditLogDetailDTO extends AdminAuditLogListItemDTO {}
+
+export interface DashboardPermissionMapDTO {
+  dashboard: boolean;
+  users: boolean;
+  vendors: boolean;
+  bookings: boolean;
+  payments: boolean;
+  reviews: boolean;
+  auditLogs: boolean;
+}
+
+export interface DashboardKpiSummaryDTO {
+  key: string;
+  title: string;
+  count: number;
+  href: string;
+  trendPercentage?: number | null;
+}
+
+export interface DashboardStatusMetricDTO {
+  status: string;
+  label: string;
+  count: number;
+}
+
+export interface DashboardTopVendorDTO {
+  vendorId: string;
+  vendorName: string;
+  metricValue: number;
+  metricLabel: string;
+  href: string;
+}
+
+export interface DashboardRecentActivityDTO {
+  id: string;
+  actorName?: string | null;
+  actorEmail?: string | null;
+  action: string;
+  module: AuditModule;
+  targetId: string;
+  createdAt: Date;
+  detailPath: string;
+  targetPath?: string | null;
+}
+
+export interface DashboardPendingActionDTO {
+  key: string;
+  title: string;
+  description: string;
+  count: number;
+  href: string;
+  ctaLabel: string;
+}
+
+export interface DashboardQuickActionDTO {
+  key: string;
+  title: string;
+  description: string;
+  href: string;
+}
+
+export interface AdminDashboardBookingsOverviewDTO {
+  range: DashboardTimeRange;
+  total: number;
+  statuses: DashboardStatusMetricDTO[];
+}
+
+export interface AdminDashboardVendorsOverviewDTO {
+  total: number;
+  statuses: DashboardStatusMetricDTO[];
+  topByBookings: DashboardTopVendorDTO[];
+  topByRatings: DashboardTopVendorDTO[];
+}
+
+export interface AdminDashboardPaymentsOverviewDTO {
+  range: DashboardTimeRange;
+  total: number;
+  statuses: DashboardStatusMetricDTO[];
+}
+
+export interface DashboardReviewRatingDistributionDTO {
+  rating: number;
+  count: number;
+}
+
+export interface AdminDashboardReviewsOverviewDTO {
+  range: DashboardTimeRange;
+  total: number;
+  averageRating: number;
+  statuses: DashboardStatusMetricDTO[];
+  ratingDistribution: DashboardReviewRatingDistributionDTO[];
+}
+
+export interface AdminDashboardOverviewDTO {
+  timeRange: DashboardTimeRange;
+  permissions: DashboardPermissionMapDTO;
+  kpis: DashboardKpiSummaryDTO[];
+  bookings?: AdminDashboardBookingsOverviewDTO | null;
+  vendors?: AdminDashboardVendorsOverviewDTO | null;
+  payments?: AdminDashboardPaymentsOverviewDTO | null;
+  reviews?: AdminDashboardReviewsOverviewDTO | null;
+  recentActivities?: DashboardRecentActivityDTO[] | null;
+  pendingActions: DashboardPendingActionDTO[];
+  quickActions: DashboardQuickActionDTO[];
+}
 
 export interface CategoryDTO {
   id: string;
@@ -730,6 +842,10 @@ export interface AdminAuditLogsQuery {
   dateTo?: Date;
   sortBy?: "createdAt";
   sortDirection?: "asc" | "desc";
+}
+
+export interface AdminDashboardOverviewQuery {
+  timeRange?: DashboardTimeRange;
 }
 
 export interface CreateReviewInput {
