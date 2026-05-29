@@ -6,7 +6,6 @@ import type {
   AdminDashboardOverviewDTO,
   DashboardKpiSummaryDTO,
   DashboardQuickActionDTO,
-  DashboardRecentActivityDTO,
   DashboardStatusMetricDTO,
   DashboardTimeRange,
 } from "@wo/shared-types";
@@ -39,8 +38,6 @@ import {
   KPI_ICON_BY_KEY,
   formatAverageRating,
   formatCompactNumber,
-  formatDashboardMetricLabel,
-  formatDateTime,
   getStatusTone,
 } from "../constants";
 import { useDashboardOverview } from "../hooks/use-dashboard-overview";
@@ -163,8 +160,8 @@ const StatusList = ({ items }: { items: DashboardStatusMetricDTO[] }) => (
 );
 
 const PieSummary = ({ data }: { data: DashboardStatusMetricDTO[] }) => (
-  <div className="h-72">
-    <ResponsiveContainer width="100%" height="100%">
+  <div className="h-72 min-w-0">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
       <PieChart>
         <Pie data={data} dataKey="count" nameKey="label" innerRadius={60} outerRadius={95} paddingAngle={3}>
           {data.map((entry, index) => (
@@ -179,8 +176,8 @@ const PieSummary = ({ data }: { data: DashboardStatusMetricDTO[] }) => (
 );
 
 const BarSummary = ({ data }: { data: DashboardStatusMetricDTO[] }) => (
-  <div className="h-72">
-    <ResponsiveContainer width="100%" height="100%">
+  <div className="h-72 min-w-0">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
         <XAxis dataKey="label" stroke="#94a3b8" tick={{ fontSize: 12 }} />
@@ -191,20 +188,6 @@ const BarSummary = ({ data }: { data: DashboardStatusMetricDTO[] }) => (
             <Cell key={entry.status} fill={DASHBOARD_CHART_COLORS[index % DASHBOARD_CHART_COLORS.length]} />
           ))}
         </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-const RatingBarChart = ({ data }: { data: Array<{ rating: number; count: number }> }) => (
-  <div className="h-72">
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data.map((item) => ({ ...item, label: `${item.rating}★` }))}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-        <XAxis dataKey="label" stroke="#94a3b8" tick={{ fontSize: 12 }} />
-        <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} allowDecimals={false} />
-        <Tooltip />
-        <Bar dataKey="count" fill="#f59e0b" radius={[8, 8, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   </div>
@@ -232,41 +215,6 @@ const QuickActions = ({ items }: { items: DashboardQuickActionDTO[] }) => (
               <Link href={item.href}>Buka Modul</Link>
             </Button>
           </div>
-        ))
-      )}
-    </CardContent>
-  </Card>
-);
-
-const RecentActivities = ({ items }: { items: DashboardRecentActivityDTO[] | null | undefined }) => (
-  <Card className="border border-slate-800 bg-slate-900/60">
-    <CardHeader>
-      <CardTitle className="text-slate-50">Recent Audit Logs</CardTitle>
-      <CardDescription className="text-slate-400">
-        Aktivitas terbaru yang dicatat sistem audit admin.
-      </CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-3">
-      {!items || items.length === 0 ? (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/70 px-4 py-6 text-sm text-slate-400">
-          Belum ada aktivitas audit yang bisa ditampilkan.
-        </div>
-      ) : (
-        items.map((item) => (
-          <Link
-            key={item.id}
-            href={item.detailPath}
-            className="block rounded-lg border border-slate-800 bg-slate-950/70 p-4 transition hover:border-indigo-500/40 hover:bg-slate-950"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{formatDashboardMetricLabel(item.module)}</Badge>
-              <Badge variant="default">{item.action}</Badge>
-            </div>
-            <p className="mt-3 text-sm font-medium text-slate-100">
-              {item.actorName || item.actorEmail || "Admin"} menjalankan aksi terhadap target {item.targetId}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">{formatDateTime(item.createdAt)}</p>
-          </Link>
         ))
       )}
     </CardContent>
@@ -367,7 +315,6 @@ export const DashboardOverview = ({
             <CardContent className="space-y-6">
               <StatusList items={data.bookings.statuses} />
               <BarSummary data={data.bookings.statuses} />
-              <PieSummary data={data.bookings.statuses.filter((item) => item.count > 0)} />
             </CardContent>
           </Card>
         ) : null}
@@ -383,46 +330,6 @@ export const DashboardOverview = ({
             <CardContent className="space-y-6">
               <StatusList items={data.vendors.statuses} />
               <PieSummary data={data.vendors.statuses.filter((item) => item.count > 0)} />
-
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-                  <h3 className="text-sm font-semibold text-slate-100">Top Vendors by Bookings</h3>
-                  <div className="mt-4 space-y-3">
-                    {data.vendors.topByBookings.length === 0 ? (
-                      <p className="text-sm text-slate-400">Belum ada data booking vendor.</p>
-                    ) : (
-                      data.vendors.topByBookings.map((item, index) => (
-                        <Link key={item.vendorId} href={item.href} className="flex items-center justify-between gap-3 text-sm">
-                          <div>
-                            <p className="font-medium text-slate-100">{index + 1}. {item.vendorName}</p>
-                            <p className="text-slate-500">{item.metricLabel}</p>
-                          </div>
-                          <span className="font-semibold text-indigo-300">{formatCompactNumber(item.metricValue)}</span>
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-                  <h3 className="text-sm font-semibold text-slate-100">Top Vendors by Ratings</h3>
-                  <div className="mt-4 space-y-3">
-                    {data.vendors.topByRatings.length === 0 ? (
-                      <p className="text-sm text-slate-400">Belum ada rating vendor yang cukup.</p>
-                    ) : (
-                      data.vendors.topByRatings.map((item, index) => (
-                        <Link key={item.vendorId} href={item.href} className="flex items-center justify-between gap-3 text-sm">
-                          <div>
-                            <p className="font-medium text-slate-100">{index + 1}. {item.vendorName}</p>
-                            <p className="text-slate-500">{item.metricLabel}</p>
-                          </div>
-                          <span className="font-semibold text-amber-300">{item.metricValue.toFixed(1)}</span>
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         ) : null}
@@ -439,7 +346,6 @@ export const DashboardOverview = ({
             </CardHeader>
             <CardContent className="space-y-6">
               <StatusList items={data.payments.statuses} />
-              <BarSummary data={data.payments.statuses} />
             </CardContent>
           </Card>
         ) : null}
@@ -468,16 +374,12 @@ export const DashboardOverview = ({
                 </div>
               </div>
               <StatusList items={data.reviews.statuses} />
-              <RatingBarChart data={data.reviews.ratingDistribution} />
             </CardContent>
           </Card>
         ) : null}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        {data.permissions.auditLogs ? <RecentActivities items={data.recentActivities} /> : null}
-        <PendingActions items={data.pendingActions} />
-      </div>
+      <PendingActions items={data.pendingActions} />
 
       <QuickActions items={data.quickActions} />
     </div>
