@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: workspaceRoot,
   },
+  devIndicators: false,
   transpilePackages: ["database"],
 };
 

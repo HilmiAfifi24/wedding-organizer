@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogoutButton } from "@/modules/auth/components/logout-button";
 import type { SidebarNavigationItem } from "@/shared/lib/sidebar-navigation";
 
@@ -20,6 +20,24 @@ const isActivePath = (pathname: string, path: string | null) => {
   if (!path) return false;
   if (path === "/") return pathname === "/";
   return pathname === path || pathname.startsWith(`${path}/`);
+};
+
+const collectNavigationPaths = (items: SidebarNavigationItem[]) => {
+  const paths = new Set<string>();
+
+  const walk = (nodes: SidebarNavigationItem[]) => {
+    for (const node of nodes) {
+      if (node.path) {
+        paths.add(node.path);
+      }
+      if (node.children.length > 0) {
+        walk(node.children);
+      }
+    }
+  };
+
+  walk(items);
+  return Array.from(paths);
 };
 
 const NavigationNode = ({
@@ -78,7 +96,21 @@ const NavigationNode = ({
 
 export function AdminLayout({ children, user, navigation }: AdminLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const prefetchPaths = useMemo(() => collectNavigationPaths(navigation), [navigation]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      for (const path of prefetchPaths) {
+        router.prefetch(path);
+      }
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [prefetchPaths, router]);
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">

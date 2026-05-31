@@ -9,8 +9,10 @@ type VendorDetailPageProps = {
 
 export default async function VendorDetailPage({ params }: VendorDetailPageProps) {
   const session = await requireAdminSession();
-  const navigation = await getEffectiveNavigationForUser(session.user.id);
-  const routeParams = await params;
+  const [navigation, routeParams] = await Promise.all([
+    getEffectiveNavigationForUser(session.user.id),
+    params,
+  ]);
 
   return (
     <AdminLayout user={session.user} navigation={navigation}>

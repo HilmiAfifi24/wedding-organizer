@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminUserDetailDTO, AdminUserListItemDTO } from "@wo/shared-types";
 
 import { usersApi } from "../services/users-api";
-import type { UserListFilters } from "../types";
+import type { UserListFilters, UserListResult } from "../types";
 
 const defaultFilters: UserListFilters = {
   role: "ALL",
@@ -15,15 +15,26 @@ const defaultFilters: UserListFilters = {
   includeDeleted: false,
 };
 
-export const useUserManagement = () => {
-  const [items, setItems] = useState<AdminUserListItemDTO[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<UserListFilters>(defaultFilters);
+export type UserManagementInitialState = {
+  list: UserListResult;
+  queryState: {
+    page: number;
+    pageSize: number;
+    filters: UserListFilters;
+  };
+};
 
-  const [isListLoading, setIsListLoading] = useState(true);
+export const useUserManagement = (initialState?: UserManagementInitialState) => {
+  const [items, setItems] = useState<AdminUserListItemDTO[]>(initialState?.list.items ?? []);
+  const [page, setPage] = useState(initialState?.queryState.page ?? 1);
+  const [pageSize, setPageSize] = useState(initialState?.queryState.pageSize ?? 10);
+  const [totalItems, setTotalItems] = useState(initialState?.list.totalItems ?? 0);
+  const [totalPages, setTotalPages] = useState(initialState?.list.totalPages ?? 1);
+  const [filters, setFilters] = useState<UserListFilters>(
+    initialState?.queryState.filters ?? defaultFilters
+  );
+
+  const [isListLoading, setIsListLoading] = useState(!initialState);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -31,6 +42,7 @@ export const useUserManagement = () => {
   const [detail, setDetail] = useState<AdminUserDetailDTO | null>(null);
 
   const requestIdRef = useRef(0);
+  const skipInitialLoadRef = useRef(Boolean(initialState));
 
   const nextRequestId = () => {
     requestIdRef.current += 1;
@@ -69,7 +81,10 @@ export const useUserManagement = () => {
   }, [filters, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
     void loadUsers();
   }, [loadUsers]);
 

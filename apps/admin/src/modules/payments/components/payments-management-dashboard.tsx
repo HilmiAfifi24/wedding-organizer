@@ -14,6 +14,7 @@ import {
 } from "@wo/ui-components";
 
 import { usePaymentMonitoring } from "../hooks/use-payment-monitoring";
+import type { PaymentMonitoringInitialState } from "../hooks/use-payment-monitoring";
 import { PaymentsFilterBar } from "./payments-filter-bar";
 import { PaymentsTable } from "./payments-table";
 
@@ -24,7 +25,11 @@ type AppToast = {
   tone: "success" | "error";
 };
 
-export const PaymentsManagementDashboard = () => {
+type PaymentsManagementDashboardProps = {
+  initialState?: PaymentMonitoringInitialState;
+};
+
+export const PaymentsManagementDashboard = ({ initialState }: PaymentsManagementDashboardProps) => {
   const {
     items,
     page,
@@ -40,7 +45,7 @@ export const PaymentsManagementDashboard = () => {
     updateFilters,
     updateSearch,
     isEmpty,
-  } = usePaymentMonitoring();
+  } = usePaymentMonitoring(initialState);
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
   const [vendorDraft, setVendorDraft] = useState(filters.vendor ?? "");

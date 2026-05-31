@@ -3,7 +3,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
-import { prisma } from "@/core/infrastructure/db/prisma";
+import { getAdminUserState } from "./admin-session-cache";
 
 export const requireAdminSession = async () => {
   const session = await auth();
@@ -12,15 +12,7 @@ export const requireAdminSession = async () => {
     redirect("/login");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      id: true,
-      role: true,
-      suspendedAt: true,
-      deletedAt: true,
-    },
-  });
+  const user = await getAdminUserState(session.user.id);
 
   if (!user || user.role !== "ADMIN" || user.suspendedAt || user.deletedAt) {
     redirect("/login");

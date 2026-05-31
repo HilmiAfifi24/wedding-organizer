@@ -23,6 +23,7 @@ import {
 } from "@wo/ui-components";
 
 import { useVendorManagement } from "../hooks/use-vendor-management";
+import type { VendorManagementInitialState } from "../hooks/use-vendor-management";
 import { VendorsFilterBar } from "./vendors-filter-bar";
 import { VendorsTable } from "./vendors-table";
 
@@ -79,7 +80,11 @@ const getActionCopy = (action: ActionType | null, vendorName: string) => {
   };
 };
 
-export const VendorsManagementDashboard = () => {
+type VendorsManagementDashboardProps = {
+  initialState?: VendorManagementInitialState;
+};
+
+export const VendorsManagementDashboard = ({ initialState }: VendorsManagementDashboardProps) => {
   const {
     items,
     page,
@@ -101,7 +106,7 @@ export const VendorsManagementDashboard = () => {
     unsuspendVendor,
     deleteVendor,
     isEmpty,
-  } = useVendorManagement();
+  } = useVendorManagement(initialState);
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
   const [confirmState, setConfirmState] = useState<ConfirmState>({

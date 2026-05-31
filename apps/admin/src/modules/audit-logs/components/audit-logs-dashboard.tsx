@@ -5,10 +5,15 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@wo/ui-components";
 
 import { useAuditLogDashboard } from "../hooks/use-audit-log-dashboard";
+import type { AuditLogDashboardInitialState } from "../hooks/use-audit-log-dashboard";
 import { AuditLogsFilterBar } from "./audit-logs-filter-bar";
 import { AuditLogsTable } from "./audit-logs-table";
 
-export const AuditLogsDashboard = () => {
+type AuditLogsDashboardProps = {
+  initialState?: AuditLogDashboardInitialState;
+};
+
+export const AuditLogsDashboard = ({ initialState }: AuditLogsDashboardProps) => {
   const {
     items,
     page,
@@ -24,7 +29,7 @@ export const AuditLogsDashboard = () => {
     updateFilters,
     updateSearch,
     isEmpty,
-  } = useAuditLogDashboard();
+  } = useAuditLogDashboard(initialState);
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
   const [actionDraft, setActionDraft] = useState(filters.action ?? "");

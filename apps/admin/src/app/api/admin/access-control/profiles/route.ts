@@ -5,6 +5,7 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { revalidateAdminNavigationCache } from "@/modules/access-control/services/navigation-cache";
 import { createAccessProfileSchema } from "@/modules/access-control/validators/access-control";
 
 export async function GET() {
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
 
     const { createAccessProfileUseCase } = createAccessControlUseCases();
     const created = await createAccessProfileUseCase.execute(parsed.data);
+    revalidateAdminNavigationCache();
 
     return successResponse(created, 201);
   } catch (error) {

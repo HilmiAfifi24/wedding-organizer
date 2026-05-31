@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminAuditLogListItemDTO } from "@wo/shared-types";
 
 import { auditLogsApi } from "../services/audit-logs-api";
-import type { AuditLogListFilters } from "../types";
+import type { AuditLogListFilters, AuditLogListResult } from "../types";
 
 const defaultFilters: AuditLogListFilters = {
   module: "ALL",
@@ -13,18 +13,30 @@ const defaultFilters: AuditLogListFilters = {
   sortDirection: "desc",
 };
 
-export const useAuditLogDashboard = () => {
-  const [items, setItems] = useState<AdminAuditLogListItemDTO[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<AuditLogListFilters>(defaultFilters);
+export type AuditLogDashboardInitialState = {
+  list: AuditLogListResult;
+  queryState: {
+    page: number;
+    pageSize: number;
+    filters: AuditLogListFilters;
+  };
+};
 
-  const [isListLoading, setIsListLoading] = useState(true);
+export const useAuditLogDashboard = (initialState?: AuditLogDashboardInitialState) => {
+  const [items, setItems] = useState<AdminAuditLogListItemDTO[]>(initialState?.list.items ?? []);
+  const [page, setPage] = useState(initialState?.queryState.page ?? 1);
+  const [pageSize, setPageSize] = useState(initialState?.queryState.pageSize ?? 10);
+  const [totalItems, setTotalItems] = useState(initialState?.list.totalItems ?? 0);
+  const [totalPages, setTotalPages] = useState(initialState?.list.totalPages ?? 1);
+  const [filters, setFilters] = useState<AuditLogListFilters>(
+    initialState?.queryState.filters ?? defaultFilters
+  );
+
+  const [isListLoading, setIsListLoading] = useState(!initialState);
   const [error, setError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
+  const skipInitialLoadRef = useRef(Boolean(initialState));
 
   const nextRequestId = () => {
     requestIdRef.current += 1;
@@ -66,7 +78,10 @@ export const useAuditLogDashboard = () => {
   }, [filters, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
     void loadAuditLogs();
   }, [loadAuditLogs]);
 

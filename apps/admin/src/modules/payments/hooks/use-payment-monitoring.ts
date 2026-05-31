@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminPaymentProofListItemDTO } from "@wo/shared-types";
 
 import { paymentsApi } from "../services/payments-api";
-import type { PaymentProofListFilters } from "../types";
+import type { PaymentProofListFilters, PaymentProofListResult } from "../types";
 
 const defaultFilters: PaymentProofListFilters = {
   paymentProofStatus: "ALL",
@@ -14,18 +14,30 @@ const defaultFilters: PaymentProofListFilters = {
   sortDirection: "desc",
 };
 
-export const usePaymentMonitoring = () => {
-  const [items, setItems] = useState<AdminPaymentProofListItemDTO[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<PaymentProofListFilters>(defaultFilters);
+export type PaymentMonitoringInitialState = {
+  list: PaymentProofListResult;
+  queryState: {
+    page: number;
+    pageSize: number;
+    filters: PaymentProofListFilters;
+  };
+};
 
-  const [isListLoading, setIsListLoading] = useState(true);
+export const usePaymentMonitoring = (initialState?: PaymentMonitoringInitialState) => {
+  const [items, setItems] = useState<AdminPaymentProofListItemDTO[]>(initialState?.list.items ?? []);
+  const [page, setPage] = useState(initialState?.queryState.page ?? 1);
+  const [pageSize, setPageSize] = useState(initialState?.queryState.pageSize ?? 10);
+  const [totalItems, setTotalItems] = useState(initialState?.list.totalItems ?? 0);
+  const [totalPages, setTotalPages] = useState(initialState?.list.totalPages ?? 1);
+  const [filters, setFilters] = useState<PaymentProofListFilters>(
+    initialState?.queryState.filters ?? defaultFilters
+  );
+
+  const [isListLoading, setIsListLoading] = useState(!initialState);
   const [error, setError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
+  const skipInitialLoadRef = useRef(Boolean(initialState));
 
   const nextRequestId = () => {
     requestIdRef.current += 1;
@@ -67,7 +79,10 @@ export const usePaymentMonitoring = () => {
   }, [filters, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
     void loadPaymentProofs();
   }, [loadPaymentProofs]);
 

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminBookingListItemDTO } from "@wo/shared-types";
 
 import { bookingsApi } from "../services/bookings-api";
-import type { BookingListFilters } from "../types";
+import type { BookingListFilters, BookingListResult } from "../types";
 
 const defaultFilters: BookingListFilters = {
   status: "ALL",
@@ -13,18 +13,30 @@ const defaultFilters: BookingListFilters = {
   sortDirection: "desc",
 };
 
-export const useBookingManagement = () => {
-  const [items, setItems] = useState<AdminBookingListItemDTO[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<BookingListFilters>(defaultFilters);
+export type BookingManagementInitialState = {
+  list: BookingListResult;
+  queryState: {
+    page: number;
+    pageSize: number;
+    filters: BookingListFilters;
+  };
+};
 
-  const [isListLoading, setIsListLoading] = useState(true);
+export const useBookingManagement = (initialState?: BookingManagementInitialState) => {
+  const [items, setItems] = useState<AdminBookingListItemDTO[]>(initialState?.list.items ?? []);
+  const [page, setPage] = useState(initialState?.queryState.page ?? 1);
+  const [pageSize, setPageSize] = useState(initialState?.queryState.pageSize ?? 10);
+  const [totalItems, setTotalItems] = useState(initialState?.list.totalItems ?? 0);
+  const [totalPages, setTotalPages] = useState(initialState?.list.totalPages ?? 1);
+  const [filters, setFilters] = useState<BookingListFilters>(
+    initialState?.queryState.filters ?? defaultFilters
+  );
+
+  const [isListLoading, setIsListLoading] = useState(!initialState);
   const [error, setError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
+  const skipInitialLoadRef = useRef(Boolean(initialState));
 
   const nextRequestId = () => {
     requestIdRef.current += 1;
@@ -66,7 +78,10 @@ export const useBookingManagement = () => {
   }, [filters, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
     void loadBookings();
   }, [loadBookings]);
 

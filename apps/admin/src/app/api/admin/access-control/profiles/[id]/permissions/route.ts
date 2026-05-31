@@ -5,6 +5,7 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { revalidateAdminNavigationCache } from "@/modules/access-control/services/navigation-cache";
 import { setAccessPermissionsPayloadSchema } from "@/modules/access-control/validators/access-control";
 
 type RouteContext = {
@@ -41,6 +42,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
     const { setAccessProfilePermissionsUseCase } = createAccessControlUseCases();
     const data = await setAccessProfilePermissionsUseCase.execute(id, permissions);
+    revalidateAdminNavigationCache();
 
     return successResponse(data);
   } catch (error) {

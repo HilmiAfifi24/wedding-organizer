@@ -9,8 +9,10 @@ export default async function BookingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await requireAdminSession();
-  const navigation = await getEffectiveNavigationForUser(session.user.id);
-  const { id } = await params;
+  const [navigation, { id }] = await Promise.all([
+    getEffectiveNavigationForUser(session.user.id),
+    params,
+  ]);
 
   return (
     <AdminLayout user={session.user} navigation={navigation}>

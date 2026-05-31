@@ -5,6 +5,7 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { revalidateAdminNavigationCache } from "@/modules/access-control/services/navigation-cache";
 
 type RouteContext = {
   params: Promise<{
@@ -27,6 +28,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const { assignUserAccessProfileUseCase } = createAccessControlUseCases();
     const data = await assignUserAccessProfileUseCase.execute(id, payload.accessProfileId ?? null);
+    revalidateAdminNavigationCache();
 
     return successResponse(data);
   } catch (error) {

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminVendorDetailDTO, AdminVendorListItemDTO } from "@wo/shared-types";
 
 import { vendorsApi } from "../services/vendors-api";
-import type { VendorListFilters } from "../types";
+import type { VendorListFilters, VendorListResult } from "../types";
 
 const defaultFilters: VendorListFilters = {
   status: "ALL",
@@ -14,15 +14,26 @@ const defaultFilters: VendorListFilters = {
   includeDeleted: false,
 };
 
-export const useVendorManagement = () => {
-  const [items, setItems] = useState<AdminVendorListItemDTO[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<VendorListFilters>(defaultFilters);
+export type VendorManagementInitialState = {
+  list: VendorListResult;
+  queryState: {
+    page: number;
+    pageSize: number;
+    filters: VendorListFilters;
+  };
+};
 
-  const [isListLoading, setIsListLoading] = useState(true);
+export const useVendorManagement = (initialState?: VendorManagementInitialState) => {
+  const [items, setItems] = useState<AdminVendorListItemDTO[]>(initialState?.list.items ?? []);
+  const [page, setPage] = useState(initialState?.queryState.page ?? 1);
+  const [pageSize, setPageSize] = useState(initialState?.queryState.pageSize ?? 10);
+  const [totalItems, setTotalItems] = useState(initialState?.list.totalItems ?? 0);
+  const [totalPages, setTotalPages] = useState(initialState?.list.totalPages ?? 1);
+  const [filters, setFilters] = useState<VendorListFilters>(
+    initialState?.queryState.filters ?? defaultFilters
+  );
+
+  const [isListLoading, setIsListLoading] = useState(!initialState);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -30,6 +41,7 @@ export const useVendorManagement = () => {
   const [detail, setDetail] = useState<AdminVendorDetailDTO | null>(null);
 
   const requestIdRef = useRef(0);
+  const skipInitialLoadRef = useRef(Boolean(initialState));
 
   const nextRequestId = () => {
     requestIdRef.current += 1;
@@ -68,7 +80,10 @@ export const useVendorManagement = () => {
   }, [filters, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
     void loadVendors();
   }, [loadVendors]);
 

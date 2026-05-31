@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, Toast, ToastClose, ToastDescription, ToastTitle } from "@wo/ui-components";
 
 import { useBookingManagement } from "../hooks/use-booking-management";
+import type { BookingManagementInitialState } from "../hooks/use-booking-management";
 import { BookingsFilterBar } from "./bookings-filter-bar";
 import { BookingsTable } from "./bookings-table";
 
@@ -15,7 +16,11 @@ type AppToast = {
   tone: "success" | "error";
 };
 
-export const BookingsManagementDashboard = () => {
+type BookingsManagementDashboardProps = {
+  initialState?: BookingManagementInitialState;
+};
+
+export const BookingsManagementDashboard = ({ initialState }: BookingsManagementDashboardProps) => {
   const {
     items,
     page,
@@ -31,7 +36,7 @@ export const BookingsManagementDashboard = () => {
     updateFilters,
     updateSearch,
     isEmpty,
-  } = useBookingManagement();
+  } = useBookingManagement(initialState);
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
   const [vendorDraft, setVendorDraft] = useState(filters.vendor ?? "");

@@ -22,12 +22,14 @@ import {
 } from "@wo/ui-components";
 
 import { useUserManagement } from "../hooks/use-user-management";
+import type { UserManagementInitialState } from "../hooks/use-user-management";
 import { UserDetailDialog } from "./user-detail-dialog";
 import { UsersFilterBar } from "./users-filter-bar";
 import { UsersTable } from "./users-table";
 
 type UsersManagementDashboardProps = {
   currentUserId: string;
+  initialState?: UserManagementInitialState;
 };
 
 type ActionType = "suspend" | "unsuspend" | "delete";
@@ -69,7 +71,10 @@ const getActionCopy = (action: ActionType | null, userName: string) => {
   };
 };
 
-export const UsersManagementDashboard = ({ currentUserId }: UsersManagementDashboardProps) => {
+export const UsersManagementDashboard = ({
+  currentUserId,
+  initialState,
+}: UsersManagementDashboardProps) => {
   const {
     items,
     page,
@@ -94,7 +99,7 @@ export const UsersManagementDashboard = ({ currentUserId }: UsersManagementDashb
     unsuspendUser,
     deleteUser,
     isEmpty,
-  } = useUserManagement();
+  } = useUserManagement(initialState);
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
   const [historyError, setHistoryError] = useState<string | null>(null);

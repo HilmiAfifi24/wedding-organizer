@@ -1,6 +1,7 @@
 import { createUserManagementUseCases } from "@/core/infrastructure/http/users/user-management-factory";
 import { getAdminActorOrThrow } from "@/core/infrastructure/http/get-admin-actor";
 import { errorResponse, handleApiError, successResponse } from "@/core/infrastructure/http/route-response";
+import { revalidateAdminSessionCache } from "@/modules/auth/services/admin-session-cache";
 import { userDetailQuerySchema, userIdParamSchema } from "@/modules/users/schemas/user-management";
 
 type RouteContext = {
@@ -45,6 +46,7 @@ export async function DELETE(_: Request, context: RouteContext) {
 
     const { softDeleteAdminUserUseCase } = createUserManagementUseCases();
     const data = await softDeleteAdminUserUseCase.execute(actorId, parsedParams.data.id);
+    revalidateAdminSessionCache();
 
     return successResponse(data);
   } catch (error) {

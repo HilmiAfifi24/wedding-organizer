@@ -23,6 +23,7 @@ import {
 } from "@wo/ui-components";
 
 import { useReviewModeration } from "../hooks/use-review-moderation";
+import type { ReviewModerationInitialState } from "../hooks/use-review-moderation";
 import { ReviewsFilterBar } from "./reviews-filter-bar";
 import { ReviewsTable } from "./reviews-table";
 
@@ -69,7 +70,11 @@ const getActionCopy = (action: ActionType | null, reviewerName: string) => {
   };
 };
 
-export const ReviewsManagementDashboard = () => {
+type ReviewsManagementDashboardProps = {
+  initialState?: ReviewModerationInitialState;
+};
+
+export const ReviewsManagementDashboard = ({ initialState }: ReviewsManagementDashboardProps) => {
   const {
     items,
     page,
@@ -89,7 +94,7 @@ export const ReviewsManagementDashboard = () => {
     unhideReview,
     deleteReview,
     isEmpty,
-  } = useReviewModeration();
+  } = useReviewModeration(initialState);
 
   const [searchDraft, setSearchDraft] = useState(filters.search ?? "");
   const [vendorDraft, setVendorDraft] = useState(filters.vendor ?? "");

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AdminReviewListItemDTO } from "@wo/shared-types";
 
 import { reviewsApi } from "../services/reviews-api";
-import type { ReviewListFilters } from "../types";
+import type { ReviewListFilters, ReviewListResult } from "../types";
 
 const defaultFilters: ReviewListFilters = {
   status: "ALL",
@@ -14,19 +14,31 @@ const defaultFilters: ReviewListFilters = {
   sortDirection: "desc",
 };
 
-export const useReviewModeration = () => {
-  const [items, setItems] = useState<AdminReviewListItemDTO[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<ReviewListFilters>(defaultFilters);
+export type ReviewModerationInitialState = {
+  list: ReviewListResult;
+  queryState: {
+    page: number;
+    pageSize: number;
+    filters: ReviewListFilters;
+  };
+};
 
-  const [isListLoading, setIsListLoading] = useState(true);
+export const useReviewModeration = (initialState?: ReviewModerationInitialState) => {
+  const [items, setItems] = useState<AdminReviewListItemDTO[]>(initialState?.list.items ?? []);
+  const [page, setPage] = useState(initialState?.queryState.page ?? 1);
+  const [pageSize, setPageSize] = useState(initialState?.queryState.pageSize ?? 10);
+  const [totalItems, setTotalItems] = useState(initialState?.list.totalItems ?? 0);
+  const [totalPages, setTotalPages] = useState(initialState?.list.totalPages ?? 1);
+  const [filters, setFilters] = useState<ReviewListFilters>(
+    initialState?.queryState.filters ?? defaultFilters
+  );
+
+  const [isListLoading, setIsListLoading] = useState(!initialState);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
+  const skipInitialLoadRef = useRef(Boolean(initialState));
 
   const nextRequestId = () => {
     requestIdRef.current += 1;
@@ -68,7 +80,10 @@ export const useReviewModeration = () => {
   }, [filters, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (skipInitialLoadRef.current) {
+      skipInitialLoadRef.current = false;
+      return;
+    }
     void loadReviews();
   }, [loadReviews]);
 

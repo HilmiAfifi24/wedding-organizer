@@ -8,28 +8,27 @@ import { AdminLayout } from "@/shared/components/admin-layout";
 
 export default async function DashboardPage() {
   const session = await requireAdminSession();
-  const navigation = await getEffectiveNavigationForUser(session.user.id);
-
-  let initialData = null;
-  let initialError: string | null = null;
-
-  try {
-    initialData = await getDashboardOverview(session.user.id, DashboardTimeRange.LAST_30_DAYS);
-  } catch (error) {
-    initialError = error instanceof Error ? error.message : "Gagal memuat dashboard overview";
-  }
+  const [navigation, overviewResult] = await Promise.all([
+    getEffectiveNavigationForUser(session.user.id),
+    getDashboardOverview(session.user.id, DashboardTimeRange.LAST_30_DAYS)
+      .then((data) => ({ data, error: null as string | null }))
+      .catch((error: unknown) => ({
+        data: null,
+        error: error instanceof Error ? error.message : "Gagal memuat dashboard overview",
+      })),
+  ]);
 
   return (
     <AdminLayout user={session.user} navigation={navigation}>
-      {initialData ? (
+      {overviewResult.data ? (
         <DashboardOverview
-          initialData={initialData}
-          initialError={initialError}
+          initialData={overviewResult.data}
+          initialError={overviewResult.error}
           actorName={session.user.name}
         />
       ) : (
         <div className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-6 text-sm text-danger">
-          {initialError || "Dashboard overview tidak dapat dimuat."}
+          {overviewResult.error || "Dashboard overview tidak dapat dimuat."}
         </div>
       )}
     </AdminLayout>

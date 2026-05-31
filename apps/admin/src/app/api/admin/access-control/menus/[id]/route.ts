@@ -5,6 +5,7 @@ import {
   parseJsonBody,
   successResponse,
 } from "@/core/infrastructure/http/route-response";
+import { revalidateAdminNavigationCache } from "@/modules/access-control/services/navigation-cache";
 import { updateAccessMenuSchema } from "@/modules/access-control/validators/access-control";
 
 type RouteContext = {
@@ -28,6 +29,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const { updateAccessMenuUseCase } = createAccessControlUseCases();
     const updated = await updateAccessMenuUseCase.execute(id, parsed.data);
+    revalidateAdminNavigationCache();
 
     return successResponse(updated);
   } catch (error) {
@@ -41,6 +43,7 @@ export async function DELETE(_: Request, context: RouteContext) {
     const { deleteAccessMenuUseCase } = createAccessControlUseCases();
 
     await deleteAccessMenuUseCase.execute(id);
+    revalidateAdminNavigationCache();
 
     return new Response(null, { status: 204 });
   } catch (error) {
