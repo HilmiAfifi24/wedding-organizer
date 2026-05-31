@@ -64,6 +64,8 @@ export enum VendorStatus {
   SUSPENDED = "suspended",
 }
 
+export const INDONESIAN_PHONE_REGEX = /^(\+?62|0)\d{8,13}$/;
+
 export interface UserDTO {
   id: string;
   email: string;

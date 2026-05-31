@@ -1,20 +1,20 @@
+import { createVendorAssetsUseCases } from "@/core/infrastructure/http/vendor-assets-factory";
 import { requireVendorRouteAccess } from "@/modules/auth/services/require-vendor-route-access";
-import { VendorModulePlaceholder } from "@/shared/components/vendor-module-placeholder";
+import { PortfolioManager } from "@/modules/portfolio/components/portfolio-manager";
 import { VendorShell } from "@/shared/components/vendor-shell";
 
 export default async function VendorPortfolioPage() {
-  const session = await requireVendorRouteAccess("protected");
+  const session = await requireVendorRouteAccess("onboarding");
+  const { listVendorPortfolioUseCase } = createVendorAssetsUseCases();
+  const portfolio = await listVendorPortfolioUseCase.execute(session.vendorId);
 
   return (
     <VendorShell
       session={session}
       title="Portfolio Vendor"
-      description="Portfolio membantu admin memverifikasi kualitas vendor dan nantinya menjadi materi showcase di marketplace user."
+      description="Tambahkan minimal satu portfolio untuk menunjukkan kualitas vendor dan memenuhi checklist approval admin."
     >
-      <VendorModulePlaceholder
-        title="Portfolio Workspace Sudah Diamankan"
-        description="Vendor approved sudah bisa diarahkan ke halaman portfolio ini. Tahap selanjutnya tinggal menambahkan CRUD portfolio dan upload media."
-      />
+      <PortfolioManager initialPortfolio={portfolio} vendorStatus={session.vendorStatus} />
     </VendorShell>
   );
 }

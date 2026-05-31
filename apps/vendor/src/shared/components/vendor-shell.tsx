@@ -3,17 +3,23 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { VendorSessionDTO } from "@wo/shared-types";
+import { VendorStatus, type VendorSessionDTO } from "@wo/shared-types";
 
 import { LogoutButton } from "@/modules/auth/components/logout-button";
 
-const navigationItems = [
+const approvedNavigationItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/profile", label: "Profile" },
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/bookings", label: "Bookings" },
   { href: "/payments", label: "Payments" },
+];
+
+const onboardingNavigationItems = [
+  { href: "/onboarding", label: "Onboarding" },
+  { href: "/services", label: "Services" },
+  { href: "/portfolio", label: "Portfolio" },
 ];
 
 const isActivePath = (pathname: string, href: string) =>
@@ -33,6 +39,10 @@ export function VendorShell({
   children,
 }: VendorShellProps) {
   const pathname = usePathname();
+  const navigationItems =
+    session.vendorStatus === VendorStatus.APPROVED
+      ? approvedNavigationItems
+      : onboardingNavigationItems;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#172554_0%,#020617_48%,#020617_100%)] text-slate-100">

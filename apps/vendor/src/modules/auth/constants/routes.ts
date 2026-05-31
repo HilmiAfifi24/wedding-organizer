@@ -15,5 +15,6 @@ export const VENDOR_PROTECTED_PATHS = [
   "/profile",
   "/services",
   "/portfolio",
+  "/bookings",
   "/payments",
 ] as const;

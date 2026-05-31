@@ -10,6 +10,12 @@ import type { PortfolioRepository } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
 export class PrismaPortfolioRepository implements PortfolioRepository {
+  async findById(id: string): Promise<PortfolioDTO | null> {
+    const portfolio = await prisma.portfolio.findUnique({ where: { id } });
+    if (!portfolio) return null;
+    return portfolio as unknown as PortfolioDTO;
+  }
+
   async listByVendor(vendorId: string, options?: ListOptions): Promise<PortfolioDTO[]> {
     const portfolios = await prisma.portfolio.findMany({
       where: { vendorId },

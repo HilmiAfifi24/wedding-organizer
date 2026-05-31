@@ -1,10 +1,11 @@
 import {
+  INDONESIAN_PHONE_REGEX,
   VendorOnboardingStatus,
   VendorStatus,
   type VendorVerificationChecklistDTO,
 } from "@wo/shared-types";
 
-export const VENDOR_PHONE_REGEX = /^(\+?62|0)\d{8,13}$/;
+export const VENDOR_PHONE_REGEX = INDONESIAN_PHONE_REGEX;
 
 export const mapPrismaVendorStatusToDto = (status: string): VendorStatus => {
   switch (status) {

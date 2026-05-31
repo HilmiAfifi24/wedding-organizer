@@ -1,4 +1,4 @@
-import { VendorStatus } from "@wo/shared-types";
+import { INDONESIAN_PHONE_REGEX, VendorStatus } from "@wo/shared-types";
 
 export interface VendorPermissionFlags {
   canView: boolean;
@@ -49,7 +49,7 @@ export const mapDtoVendorStatusToPrisma = (
   }
 };
 
-const phoneRegex = /^\+?[1-9]\d{8,14}$/;
+const phoneRegex = INDONESIAN_PHONE_REGEX;
 
 export const evaluateVendorVerificationChecklist = (input: {
   businessName?: string | null;
