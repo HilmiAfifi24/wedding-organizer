@@ -262,12 +262,30 @@ export interface CategoryDTO {
   updatedAt: Date;
 }
 
+export interface AdminCategoryListItemDTO extends CategoryDTO {
+  vendorCount: number;
+}
+
+export interface AdminCategoryDetailDTO extends AdminCategoryListItemDTO {}
+
+export interface AdminCategoriesQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: "name" | "createdAt" | "updatedAt";
+  sortDirection?: "asc" | "desc";
+}
+
 export interface VendorDTO {
   id: string;
   ownerId: string;
   name: string;
+  businessName?: string | null;
   description?: string | null;
   location?: string | null;
+  businessAddress?: string | null;
+  city?: string | null;
+  province?: string | null;
   contactInfo?: string | null;
   phoneNumber?: string | null;
   priceRange?: string | null;
@@ -290,14 +308,57 @@ export interface VendorVerificationChecklistDTO {
   businessNameExists: boolean;
   categoryExists: boolean;
   phoneNumberValid: boolean;
+  addressCompleted: boolean;
   hasMinimumService: boolean;
   hasMinimumPortfolio: boolean;
   isComplete: boolean;
 }
 
+export enum VendorOnboardingStatus {
+  INCOMPLETE = "INCOMPLETE",
+  READY_FOR_REVIEW = "READY_FOR_REVIEW",
+}
+
+export interface VendorSessionDTO {
+  userId: string;
+  vendorId: string;
+  email: string;
+  role: Role.VENDOR;
+  vendorStatus: VendorStatus;
+  ownerName?: string | null;
+  businessName?: string | null;
+  rejectionReason?: string | null;
+  rejectedAt?: Date | null;
+  suspensionReason?: string | null;
+  suspendedAt?: Date | null;
+}
+
+export interface VendorOnboardingDTO {
+  vendorId: string;
+  ownerName?: string | null;
+  email: string;
+  status: VendorStatus;
+  onboardingStatus: VendorOnboardingStatus;
+  businessName?: string | null;
+  description?: string | null;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  phoneNumber?: string | null;
+  businessAddress?: string | null;
+  city?: string | null;
+  province?: string | null;
+  rejectionReason?: string | null;
+  rejectedAt?: Date | null;
+  suspendedAt?: Date | null;
+  servicesCount: number;
+  portfolioCount: number;
+  checklist: VendorVerificationChecklistDTO;
+}
+
 export interface AdminVendorListItemDTO {
   id: string;
   name: string;
+  businessName?: string | null;
   status: VendorStatus;
   categoryId?: string | null;
   categoryName?: string | null;
@@ -329,6 +390,9 @@ export interface AdminVendorPortfolioPreviewDTO {
 export interface AdminVendorDetailDTO extends AdminVendorListItemDTO {
   description?: string | null;
   location?: string | null;
+  businessAddress?: string | null;
+  city?: string | null;
+  province?: string | null;
   contactInfo?: string | null;
   priceRange?: string | null;
   approvedAt?: Date | null;
@@ -710,11 +774,19 @@ export interface CreateCategoryInput {
   name: string;
 }
 
+export interface UpdateCategoryInput {
+  name: string;
+}
+
 export interface CreateVendorInput {
   ownerId: string;
   name: string;
+  businessName?: string;
   description?: string;
   location?: string;
+  businessAddress?: string;
+  city?: string;
+  province?: string;
   contactInfo?: string;
   phoneNumber?: string;
   priceRange?: string;
@@ -723,12 +795,39 @@ export interface CreateVendorInput {
 
 export interface UpdateVendorInput {
   name?: string;
+  businessName?: string;
   description?: string;
   location?: string;
+  businessAddress?: string;
+  city?: string;
+  province?: string;
   contactInfo?: string;
   phoneNumber?: string | null;
   priceRange?: string;
   categoryId?: string | null;
+}
+
+export interface VendorRegistrationInput {
+  ownerName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  confirmPassword: string;
+  businessName: string;
+  categoryId: string;
+  businessAddress: string;
+  city: string;
+  province: string;
+}
+
+export interface UpdateVendorOnboardingInput {
+  businessName: string;
+  description?: string;
+  categoryId: string;
+  phoneNumber: string;
+  businessAddress: string;
+  city: string;
+  province: string;
 }
 
 export interface CreateServiceInput {

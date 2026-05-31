@@ -22,8 +22,8 @@ export class PrismaUserRepository implements UserRepository {
     const user = await prisma.user.create({
       data: {
         ...data,
-        role: data.role as any,
-      }
+        role: data.role as "USER" | "VENDOR" | "ADMIN",
+      },
     });
     return user as unknown as UserDTO;
   }

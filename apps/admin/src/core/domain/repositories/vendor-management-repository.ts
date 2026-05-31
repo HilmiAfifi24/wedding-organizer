@@ -19,7 +19,11 @@ export interface VendorManagementRepository {
       Omit<AdminVendorsQuery, "page" | "pageSize" | "sortBy" | "sortDirection">
   ): Promise<{ items: AdminVendorListItemDTO[]; totalItems: number }>;
 
-  getVendorById(vendorId: string, includeDeleted?: boolean): Promise<AdminVendorDetailDTO | null>;
+  getVendorById(
+    vendorId: string,
+    includeDeleted?: boolean,
+    includeHistory?: boolean
+  ): Promise<AdminVendorDetailDTO | null>;
 
   approveVendor(vendorId: string, actorId: string): Promise<AdminVendorDetailDTO>;
   rejectVendor(vendorId: string, actorId: string, reason: string): Promise<AdminVendorDetailDTO>;

@@ -24,8 +24,8 @@ export class PrismaPortfolioRepository implements PortfolioRepository {
     const portfolio = await prisma.portfolio.create({
       data: {
         ...data,
-        mediaType: data.mediaType as any,
-      }
+        mediaType: data.mediaType as "IMAGE" | "VIDEO",
+      },
     });
     return portfolio as unknown as PortfolioDTO;
   }

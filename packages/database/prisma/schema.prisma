@@ -121,8 +121,12 @@ model Vendor {
   id               String       @id @default(uuid())
   ownerId          String       @unique
   name             String
+  businessName     String?
   description      String?
   location         String?
+  businessAddress  String?
+  city             String?
+  province         String?
   contactInfo      String?
   phoneNumber      String?
   priceRange       String?
@@ -154,6 +158,7 @@ model Vendor {
   @@index([categoryId])
   @@index([status])
   @@index([deletedAt])
+  @@unique([phoneNumber])
 }
 
 model Service {

@@ -1,18 +1,26 @@
-import React from "react";
+import { createVendorAuthUseCases } from "@/core/infrastructure/http/vendor-auth-factory";
 import { RegisterForm } from "@/modules/auth/components/register-form";
+import { requireVendorRouteAccess } from "@/modules/auth/services/require-vendor-route-access";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  await requireVendorRouteAccess("auth");
+  const { listVendorCategoriesUseCase } = createVendorAuthUseCases();
+  const categories = await listVendorCategoriesUseCase.execute();
+
   return (
-    <div className="flex min-h-screen flex-1 flex-col items-center justify-center p-6 bg-gradient-to-br from-amber-50 via-zinc-50 to-orange-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="mb-4 text-center">
-        <h2 className="text-3xl font-extrabold text-amber-600 tracking-tight dark:text-amber-400">
-          Wedding Organizer
-        </h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Portal Vendor
-        </p>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#164e63_0%,#020617_58%,#020617_100%)] px-4 py-10">
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="mb-6 text-center">
+          <p className="text-xs uppercase tracking-[0.32em] text-cyan-300/80">
+            Wedding Organizer
+          </p>
+          <h1 className="mt-3 text-4xl font-semibold text-white">Registrasi Vendor</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Buat akun vendor, lengkapi onboarding, lalu tunggu approval admin.
+          </p>
+        </div>
+        <RegisterForm categories={categories} />
       </div>
-      <RegisterForm />
     </div>
   );
 }

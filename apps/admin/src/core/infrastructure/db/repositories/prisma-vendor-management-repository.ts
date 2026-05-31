@@ -23,6 +23,7 @@ import { prisma } from "../prisma";
 type PrismaVendorListRecord = {
   id: string;
   name: string;
+  businessName: string | null;
   ownerId: string;
   status: string;
   categoryId: string | null;
@@ -41,7 +42,8 @@ type PrismaVendorListRecord = {
 
 const mapVendorListItem = (vendor: PrismaVendorListRecord): AdminVendorListItemDTO => ({
   id: vendor.id,
-  name: vendor.name,
+  name: vendor.businessName ?? vendor.name,
+  businessName: vendor.businessName ?? vendor.name,
   status: mapPrismaVendorStatusToDto(vendor.status),
   categoryId: vendor.categoryId,
   categoryName: vendor.category?.name ?? null,
@@ -120,6 +122,7 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
         ? {
             OR: [
               { name: { contains: query.search, mode: "insensitive" as const } },
+              { businessName: { contains: query.search, mode: "insensitive" as const } },
               { owner: { name: { contains: query.search, mode: "insensitive" as const } } },
               { owner: { email: { contains: query.search, mode: "insensitive" as const } } },
               { category: { name: { contains: query.search, mode: "insensitive" as const } } },
@@ -168,7 +171,11 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
     };
   }
 
-  async getVendorById(vendorId: string, includeDeleted = false): Promise<AdminVendorDetailDTO | null> {
+  async getVendorById(
+    vendorId: string,
+    includeDeleted = false,
+    includeHistory = true
+  ): Promise<AdminVendorDetailDTO | null> {
     const vendor = await prisma.vendor.findFirst({
       where: {
         id: vendorId,
@@ -218,28 +225,34 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
     }
 
     const checklist = evaluateVendorVerificationChecklist({
-      businessName: vendor.name,
+      businessName: vendor.businessName ?? vendor.name,
+      businessAddress: vendor.businessAddress,
+      city: vendor.city,
+      province: vendor.province,
       categoryId: vendor.categoryId,
       phoneNumber: vendor.phoneNumber,
       serviceCount: vendor.services.length,
       portfolioCount: vendor.portfolio.length,
     });
 
-    const history = await prisma.auditLog.findMany({
-      where: {
-        module: "VENDOR_MANAGEMENT",
-        targetId: vendor.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 50,
-    });
+    const history = includeHistory
+      ? await prisma.auditLog.findMany({
+          where: {
+            module: "VENDOR_MANAGEMENT",
+            targetId: vendor.id,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 50,
+        })
+      : [];
 
     return {
       ...mapVendorListItem({
         id: vendor.id,
         name: vendor.name,
+        businessName: vendor.businessName,
         ownerId: vendor.ownerId,
         status: vendor.status,
         categoryId: vendor.categoryId,
@@ -252,6 +265,9 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       }),
       description: vendor.description,
       location: vendor.location,
+      businessAddress: vendor.businessAddress,
+      city: vendor.city,
+      province: vendor.province,
       contactInfo: vendor.contactInfo,
       priceRange: vendor.priceRange,
       approvedAt: vendor.approvedAt,
@@ -295,7 +311,7 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       },
     });
 
-    const vendor = await this.getVendorById(vendorId, true);
+    const vendor = await this.getVendorById(vendorId, true, false);
     if (!vendor) {
       throw new Error("Vendor not found");
     }
@@ -314,7 +330,7 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       },
     });
 
-    const vendor = await this.getVendorById(vendorId, true);
+    const vendor = await this.getVendorById(vendorId, true, false);
     if (!vendor) {
       throw new Error("Vendor not found");
     }
@@ -332,7 +348,7 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       },
     });
 
-    const vendor = await this.getVendorById(vendorId, true);
+    const vendor = await this.getVendorById(vendorId, true, false);
     if (!vendor) {
       throw new Error("Vendor not found");
     }
@@ -361,7 +377,7 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       },
     });
 
-    const vendor = await this.getVendorById(vendorId, true);
+    const vendor = await this.getVendorById(vendorId, true, false);
     if (!vendor) {
       throw new Error("Vendor not found");
     }
@@ -378,7 +394,7 @@ export class PrismaVendorManagementRepository implements VendorManagementReposit
       },
     });
 
-    const vendor = await this.getVendorById(vendorId, true);
+    const vendor = await this.getVendorById(vendorId, true, false);
     if (!vendor) {
       throw new Error("Vendor not found");
     }

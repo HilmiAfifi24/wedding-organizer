@@ -13,6 +13,7 @@ export interface VendorVerificationChecklist {
   businessNameExists: boolean;
   categoryExists: boolean;
   phoneNumberValid: boolean;
+  addressCompleted: boolean;
   hasMinimumService: boolean;
   hasMinimumPortfolio: boolean;
   isComplete: boolean;
@@ -54,18 +55,25 @@ export const evaluateVendorVerificationChecklist = (input: {
   businessName?: string | null;
   categoryId?: string | null;
   phoneNumber?: string | null;
+  businessAddress?: string | null;
+  city?: string | null;
+  province?: string | null;
   serviceCount: number;
   portfolioCount: number;
 }): VendorVerificationChecklist => {
   const businessNameExists = Boolean(input.businessName?.trim());
   const categoryExists = Boolean(input.categoryId);
   const phoneNumberValid = Boolean(input.phoneNumber && phoneRegex.test(input.phoneNumber));
+  const addressCompleted = Boolean(
+    input.businessAddress?.trim() && input.city?.trim() && input.province?.trim()
+  );
   const hasMinimumService = input.serviceCount >= 1;
   const hasMinimumPortfolio = input.portfolioCount >= 1;
   const isComplete =
     businessNameExists &&
     categoryExists &&
     phoneNumberValid &&
+    addressCompleted &&
     hasMinimumService &&
     hasMinimumPortfolio;
 
@@ -73,8 +81,41 @@ export const evaluateVendorVerificationChecklist = (input: {
     businessNameExists,
     categoryExists,
     phoneNumberValid,
+    addressCompleted,
     hasMinimumService,
     hasMinimumPortfolio,
     isComplete,
   };
+};
+
+export const getVendorVerificationChecklistIssues = (
+  checklist: VendorVerificationChecklist
+): string[] => {
+  const issues: string[] = [];
+
+  if (!checklist.businessNameExists) {
+    issues.push("business name belum diisi");
+  }
+
+  if (!checklist.categoryExists) {
+    issues.push("kategori belum dipilih");
+  }
+
+  if (!checklist.phoneNumberValid) {
+    issues.push("nomor telepon belum valid");
+  }
+
+  if (!checklist.addressCompleted) {
+    issues.push("alamat bisnis belum lengkap");
+  }
+
+  if (!checklist.hasMinimumService) {
+    issues.push("minimal 1 service belum tersedia");
+  }
+
+  if (!checklist.hasMinimumPortfolio) {
+    issues.push("minimal 1 portfolio belum tersedia");
+  }
+
+  return issues;
 };

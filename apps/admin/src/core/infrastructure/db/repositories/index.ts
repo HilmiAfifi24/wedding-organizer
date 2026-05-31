@@ -5,6 +5,7 @@ export * from "./prisma-audit-log-dashboard-repository";
 export * from "./prisma-booking-repository";
 export * from "./prisma-booking-management-repository";
 export * from "./prisma-category-repository";
+export * from "./prisma-category-management-repository";
 export * from "./prisma-dashboard-overview-repository";
 export * from "./prisma-payment-monitoring-repository";
 export * from "./prisma-payment-proof-repository";

@@ -4,6 +4,7 @@ import type { AdminVendorsQuery, CreateAuditLogInput } from "@wo/shared-types";
 import {
   VENDOR_MANAGEMENT_MENU_CODE,
   evaluateVendorVerificationChecklist,
+  getVendorVerificationChecklistIssues,
   type VendorPermissionFlags,
 } from "@/core/domain/entities/vendor-management";
 import type { VendorManagementRepository } from "@/core/domain/repositories";
@@ -102,7 +103,7 @@ export class GetAdminVendorDetailUseCase {
       assertPermission(permission, "canHistory", "Forbidden: no permission to view history");
     }
 
-    const vendor = await this.repository.getVendorById(vendorId, includeDeleted);
+    const vendor = await this.repository.getVendorById(vendorId, includeDeleted, includeHistory);
     if (!vendor) {
       throw new Error("Vendor not found");
     }
@@ -129,7 +130,7 @@ export class ApproveVendorUseCase {
 
     assertPermission(permission, "canUpdate", "Forbidden: no permission to approve vendor");
 
-    const before = await this.repository.getVendorById(vendorId, true);
+    const before = await this.repository.getVendorById(vendorId, true, false);
     if (!before) {
       throw new Error("Vendor not found");
     }
@@ -143,7 +144,10 @@ export class ApproveVendorUseCase {
     }
 
     const checklist = evaluateVendorVerificationChecklist({
-      businessName: before.name,
+      businessName: before.businessName ?? before.name,
+      businessAddress: before.businessAddress,
+      city: before.city,
+      province: before.province,
       categoryId: before.categoryId,
       phoneNumber: before.phoneNumber,
       serviceCount: before.services.length,
@@ -151,7 +155,8 @@ export class ApproveVendorUseCase {
     });
 
     if (!checklist.isComplete) {
-      throw new Error("Vendor verification checklist is incomplete");
+      const issues = getVendorVerificationChecklistIssues(checklist);
+      throw new Error(`Vendor verification checklist is incomplete: ${issues.join(", ")}`);
     }
 
     const after = await this.repository.approveVendor(vendorId, actorId);
@@ -175,7 +180,7 @@ export class RejectVendorUseCase {
 
     assertPermission(permission, "canUpdate", "Forbidden: no permission to reject vendor");
 
-    const before = await this.repository.getVendorById(vendorId, true);
+    const before = await this.repository.getVendorById(vendorId, true, false);
     if (!before) {
       throw new Error("Vendor not found");
     }
@@ -210,7 +215,7 @@ export class SuspendVendorUseCase {
 
     assertPermission(permission, "canUpdate", "Forbidden: no permission to suspend vendor");
 
-    const before = await this.repository.getVendorById(vendorId, true);
+    const before = await this.repository.getVendorById(vendorId, true, false);
     if (!before) {
       throw new Error("Vendor not found");
     }
@@ -240,7 +245,7 @@ export class UnsuspendVendorUseCase {
 
     assertPermission(permission, "canUpdate", "Forbidden: no permission to unsuspend vendor");
 
-    const before = await this.repository.getVendorById(vendorId, true);
+    const before = await this.repository.getVendorById(vendorId, true, false);
     if (!before) {
       throw new Error("Vendor not found");
     }
@@ -270,7 +275,7 @@ export class SoftDeleteVendorUseCase {
 
     assertPermission(permission, "canDelete", "Forbidden: no permission to delete vendor");
 
-    const before = await this.repository.getVendorById(vendorId, true);
+    const before = await this.repository.getVendorById(vendorId, true, false);
     if (!before) {
       throw new Error("Vendor not found");
     }

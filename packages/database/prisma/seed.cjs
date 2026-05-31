@@ -29,6 +29,13 @@ const accessMenus = [
     parentCode: null,
   },
   {
+    code: "CATEGORY_MANAGEMENT",
+    name: "Manajemen Kategori",
+    path: "/categories",
+    sortOrder: 35,
+    parentCode: null,
+  },
+  {
     code: "VENDOR_MANAGEMENT",
     name: "Manajemen Vendor",
     path: "/vendors",

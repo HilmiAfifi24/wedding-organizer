@@ -1,27 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@wo/ui-components";
-import { registerSchema, type RegisterInput } from "../validators/auth";
-import { registerVendorAction, getCategoriesAction } from "../actions/auth-actions";
+import type { ReactNode } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import type { CategoryDTO } from "@wo/shared-types";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from "@wo/ui-components";
 
-interface Category {
-  id: string;
-  name: string;
+import { registerSchema, type RegisterInput } from "../schemas/auth";
+
+interface RegisterFormProps {
+  categories: CategoryDTO[];
 }
 
-export function RegisterForm() {
+export function RegisterForm({ categories }: RegisterFormProps) {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [fetchingCategories, setFetchingCategories] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasCategories = categories.length > 0;
 
   const {
     register,
@@ -30,262 +29,187 @@ export function RegisterForm() {
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
+      ownerName: "",
       email: "",
+      phoneNumber: "",
       password: "",
       confirmPassword: "",
-      vendorName: "",
+      businessName: "",
       categoryId: "",
+      businessAddress: "",
+      city: "",
+      province: "",
     },
   });
 
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await getCategoriesAction();
-        if (res.success && res.categories) {
-          setCategories(res.categories);
-        }
-      } catch (err) {
-        console.error("Gagal memuat kategori:", err);
-      } finally {
-        setFetchingCategories(false);
-      }
-    }
-    loadCategories();
-  }, []);
-
   const onSubmit = async (data: RegisterInput) => {
-    setLoading(true);
+    setIsSubmitting(true);
     setError(null);
     setSuccess(null);
+
     try {
-      const res = await registerVendorAction(data);
-      if (!res.success) {
-        setError(res.error || "Gagal mendaftar");
-      } else {
-        setSuccess(res.message || "Pendaftaran vendor berhasil!");
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
+      const response = await fetch("/api/vendor/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const body = (await response.json().catch(() => null)) as
+        | { success: true; message: string }
+        | { success: false; message?: string };
+
+      if (!response.ok || !body?.success) {
+        setError(body?.message || "Registrasi vendor gagal diproses.");
+        return;
       }
-    } catch (err) {
-      setError("Terjadi kesalahan sistem. Silakan coba lagi.");
+
+      setSuccess("Registrasi berhasil. Silakan login untuk melanjutkan onboarding vendor.");
+      window.setTimeout(() => {
+        router.push("/login");
+      }, 1200);
+    } catch {
+      setError("Terjadi kesalahan saat mengirim pendaftaran vendor.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-md border border-white/20 bg-white/80 p-2 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:shadow-amber-500/10 dark:border-zinc-800/80 dark:bg-zinc-950/80">
-      <CardHeader className="space-y-1 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/50">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="h-6 w-6 text-amber-600 dark:text-amber-400"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <CardTitle className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Daftar Vendor Baru
-        </CardTitle>
-        <CardDescription className="text-zinc-500 dark:text-zinc-400">
-          Bergabunglah untuk mempromosikan layanan pernikahan Anda
+    <Card className="w-full max-w-3xl border-white/10 bg-slate-950/75 text-slate-100 backdrop-blur">
+      <CardHeader className="space-y-2">
+        <CardTitle className="text-3xl">Registrasi Vendor</CardTitle>
+        <CardDescription className="text-slate-400">
+          Buat akun vendor, lalu lanjutkan onboarding sampai siap direview admin.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          {error && (
-            <div className="flex items-center gap-2 rounded-lg bg-rose-50 p-3 text-sm text-rose-600 border border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900/50">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="h-5 w-5 shrink-0"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                  clipRule="evenodd"
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {error ? (
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {error}
+            </div>
+          ) : null}
+
+          {success ? (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              {success}
+            </div>
+          ) : null}
+
+          {!hasCategories ? (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+              Kategori vendor belum tersedia. Tambahkan kategori dari admin panel sebelum vendor
+              baru melakukan registrasi.
+            </div>
+          ) : null}
+
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
+              Account Information
+            </h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Owner Name" error={errors.ownerName?.message}>
+                <Input {...register("ownerName")} className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
+              <Field label="Email" error={errors.email?.message}>
+                <Input {...register("email")} type="email" className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
+              <Field label="Phone Number" error={errors.phoneNumber?.message}>
+                <Input {...register("phoneNumber")} className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
+              <Field label="Password" error={errors.password?.message}>
+                <Input {...register("password")} type="password" className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
+              <Field label="Confirm Password" error={errors.confirmPassword?.message}>
+                <Input
+                  {...register("confirmPassword")}
+                  type="password"
+                  className="border-white/10 bg-slate-900 text-slate-100"
                 />
-              </svg>
-              <span>{error}</span>
+              </Field>
             </div>
-          )}
+          </section>
 
-          {success && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-600 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50 animate-pulse">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="h-5 w-5 shrink-0"
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
+              Business Information
+            </h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Business Name" error={errors.businessName?.message}>
+                <Input {...register("businessName")} className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
+              <Field label="Category" error={errors.categoryId?.message}>
+                <select
+                  {...register("categoryId")}
+                  disabled={!hasCategories}
+                  className="flex h-10 w-full rounded-md border border-white/10 bg-slate-900 px-3 text-sm text-slate-100"
+                >
+                  <option value="">Pilih kategori</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field
+                label="Business Address"
+                error={errors.businessAddress?.message}
+                className="md:col-span-2"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                  clipRule="evenodd"
+                <textarea
+                  {...register("businessAddress")}
+                  rows={3}
+                  className="flex w-full rounded-md border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100"
                 />
-              </svg>
-              <span>{success}</span>
+              </Field>
+              <Field label="City" error={errors.city?.message}>
+                <Input {...register("city")} className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
+              <Field label="Province" error={errors.province?.message}>
+                <Input {...register("province")} className="border-white/10 bg-slate-900 text-slate-100" />
+              </Field>
             </div>
-          )}
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Nama Pemilik (Owner)
-            </label>
-            <Input
-              {...register("name")}
-              type="text"
-              placeholder="John Doe"
-              className="transition-all duration-300 focus:border-amber-500 focus:ring-amber-500/20 dark:bg-zinc-900"
-            />
-            {errors.name && (
-              <span className="text-xs text-rose-500">{errors.name.message}</span>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Nama Vendor / Bisnis
-            </label>
-            <Input
-              {...register("vendorName")}
-              type="text"
-              placeholder="e.g. Royal Catering, Golden Venue"
-              className="transition-all duration-300 focus:border-amber-500 focus:ring-amber-500/20 dark:bg-zinc-900"
-            />
-            {errors.vendorName && (
-              <span className="text-xs text-rose-500">{errors.vendorName.message}</span>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Kategori Layanan
-            </label>
-            <select
-              {...register("categoryId")}
-              disabled={fetchingCategories}
-              className="h-10 w-full rounded-md border border-border bg-transparent px-3 text-sm shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-900"
-            >
-              <option value="" className="dark:bg-zinc-950">
-                {fetchingCategories ? "Memuat Kategori..." : "-- Pilih Kategori --"}
-              </option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id} className="dark:bg-zinc-950">
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {errors.categoryId && (
-              <span className="text-xs text-rose-500">{errors.categoryId.message}</span>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Email Bisnis
-            </label>
-            <Input
-              {...register("email")}
-              type="email"
-              placeholder="bisnis@email.com"
-              className="transition-all duration-300 focus:border-amber-500 focus:ring-amber-500/20 dark:bg-zinc-900"
-            />
-            {errors.email && (
-              <span className="text-xs text-rose-500">{errors.email.message}</span>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Password
-            </label>
-            <div className="relative">
-              <Input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••"
-                className="pr-10 transition-all duration-300 focus:border-amber-500 focus:ring-amber-500/20 dark:bg-zinc-900"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
-              >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-4 w-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.815 7.815L21 21m-3.955-3.955l-3.9-3.9M12 10.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" /></svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-4 w-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <span className="text-xs text-rose-500">{errors.password.message}</span>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-              Konfirmasi Password
-            </label>
-            <Input
-              {...register("confirmPassword")}
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••"
-              className="transition-all duration-300 focus:border-amber-500 focus:ring-amber-500/20 dark:bg-zinc-900"
-            />
-            {errors.confirmPassword && (
-              <span className="text-xs text-rose-500">{errors.confirmPassword.message}</span>
-            )}
-          </div>
+          </section>
 
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-amber-600 text-white hover:bg-amber-700 active:scale-[0.98] transition-transform duration-100 dark:bg-amber-700 dark:hover:bg-amber-600 mt-2"
+            className="w-full md:w-auto"
+            disabled={isSubmitting || !hasCategories}
           >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <svg
-                  className="h-4 w-4 animate-spin text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Mendaftarkan Vendor...
-              </span>
-            ) : (
-              "Daftar Sebagai Vendor"
-            )}
+            {isSubmitting ? "Mendaftarkan vendor..." : "Daftar Vendor"}
           </Button>
         </form>
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-        <div>
-          Sudah punya akun Vendor?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-          >
-            Masuk Vendor
+
+        <div className="mt-6 text-sm text-slate-400">
+          Sudah punya akun?{" "}
+          <Link href="/login" className="font-medium text-cyan-300 hover:text-cyan-200">
+            Masuk vendor
           </Link>
         </div>
-      </CardFooter>
+      </CardContent>
     </Card>
+  );
+}
+
+function Field({
+  label,
+  error,
+  className,
+  children,
+}: {
+  label: string;
+  error?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={className}>
+      <label className="mb-2 block text-sm font-medium text-slate-200">{label}</label>
+      {children}
+      {error ? <p className="mt-1 text-xs text-rose-300">{error}</p> : null}
+    </div>
   );
 }

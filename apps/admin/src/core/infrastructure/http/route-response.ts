@@ -53,6 +53,16 @@ export const handleApiError = (error: unknown) => {
     if (error.message.toLowerCase().includes("not found")) {
       return errorResponse(404, error.message);
     }
+
+    if (
+      error.message.toLowerCase().includes("incomplete") ||
+      error.message.toLowerCase().includes("already exists") ||
+      error.message.toLowerCase().includes("required") ||
+      error.message.toLowerCase().includes("cannot") ||
+      error.message.toLowerCase().includes("invalid")
+    ) {
+      return errorResponse(400, error.message);
+    }
   }
 
   if (hasCode(error)) {

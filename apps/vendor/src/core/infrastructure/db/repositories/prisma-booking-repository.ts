@@ -46,7 +46,13 @@ export class PrismaBookingRepository implements BookingRepository {
     const booking = await prisma.booking.update({
       where: { id },
       data: {
-        status: data.status as any,
+        status: data.status as
+          | "PENDING"
+          | "PENDING_PAYMENT"
+          | "CONFIRMED"
+          | "REJECTED"
+          | "COMPLETED"
+          | "CANCELLED",
       },
     });
     return booking as unknown as BookingDTO;

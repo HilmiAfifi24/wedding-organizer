@@ -10,6 +10,7 @@ export * from "./booking-management-repository";
 export * from "./booking-repository";
 export * from "./payment-monitoring-repository";
 export * from "./category-repository";
+export * from "./category-management-repository";
 export * from "./payment-proof-repository";
 export * from "./portfolio-repository";
 export * from "./review-moderation-repository";
