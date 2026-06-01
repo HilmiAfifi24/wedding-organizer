@@ -1,4 +1,13 @@
-import { MediaType, VendorStatus, type CreatePortfolioInput, type CreateServiceInput, type PortfolioDTO, type ServiceDTO, type UpdateServiceInput } from "@wo/shared-types";
+import {
+  MediaType,
+  VendorStatus,
+  type CreatePortfolioInput,
+  type CreateServiceInput,
+  type PortfolioDTO,
+  type ServiceDTO,
+  type UpdatePortfolioInput,
+  type UpdateServiceInput,
+} from "@wo/shared-types";
 
 import type { PortfolioRepository, ServiceRepository } from "@/core/domain/repositories";
 
@@ -119,6 +128,39 @@ export class CreateVendorPortfolioUseCase {
       description: input.description?.trim() || undefined,
       mediaUrl: input.mediaUrl.trim(),
       mediaType: input.mediaType,
+    });
+  }
+}
+
+export class UpdateVendorPortfolioUseCase {
+  constructor(private readonly repository: PortfolioRepository) {}
+
+  async execute(
+    vendorId: string,
+    status: VendorStatus,
+    portfolioId: string,
+    input: UpdatePortfolioInput
+  ) {
+    assertCanManageAssets(status);
+
+    const existing = await this.repository.findById(portfolioId);
+    if (!existing || existing.vendorId !== vendorId) {
+      throw new Error("Portfolio not found");
+    }
+
+    if (input.mediaUrl !== undefined && !input.mediaUrl.trim()) {
+      throw new Error("Portfolio media URL is required");
+    }
+
+    if (input.mediaType !== undefined && !Object.values(MediaType).includes(input.mediaType)) {
+      throw new Error("Portfolio media type is invalid");
+    }
+
+    return this.repository.update(portfolioId, {
+      ...input,
+      title: input.title?.trim() || undefined,
+      description: input.description?.trim() || undefined,
+      mediaUrl: input.mediaUrl?.trim(),
     });
   }
 }

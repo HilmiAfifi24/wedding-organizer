@@ -4,6 +4,7 @@ import type {
   CreatePortfolioInput,
   ListOptions,
   PortfolioDTO,
+  UpdatePortfolioInput,
 } from "@wo/shared-types";
 
 import type { PortfolioRepository } from "../../../domain/repositories";
@@ -33,6 +34,18 @@ export class PrismaPortfolioRepository implements PortfolioRepository {
         mediaType: data.mediaType as "IMAGE" | "VIDEO",
       },
     });
+    return portfolio as unknown as PortfolioDTO;
+  }
+
+  async update(id: string, data: UpdatePortfolioInput): Promise<PortfolioDTO> {
+    const portfolio = await prisma.portfolio.update({
+      where: { id },
+      data: {
+        ...data,
+        mediaType: data.mediaType as "IMAGE" | "VIDEO" | undefined,
+      },
+    });
+
     return portfolio as unknown as PortfolioDTO;
   }
 

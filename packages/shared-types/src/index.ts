@@ -976,3 +976,10 @@ export interface CreatePortfolioInput {
   mediaUrl: string;
   mediaType: MediaType;
 }
+
+export interface UpdatePortfolioInput {
+  title?: string;
+  description?: string;
+  mediaUrl?: string;
+  mediaType?: MediaType;
+}

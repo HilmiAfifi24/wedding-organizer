@@ -4,7 +4,7 @@ import { PortfolioManager } from "@/modules/portfolio/components/portfolio-manag
 import { VendorShell } from "@/shared/components/vendor-shell";
 
 export default async function VendorPortfolioPage() {
-  const session = await requireVendorRouteAccess("onboarding");
+  const session = await requireVendorRouteAccess("workspace");
   const { listVendorPortfolioUseCase } = createVendorAssetsUseCases();
   const portfolio = await listVendorPortfolioUseCase.execute(session.vendorId);
 

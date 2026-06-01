@@ -9,6 +9,7 @@ import { getCurrentVendorSession } from "@/modules/auth/services/current-vendor-
 
 type VendorRouteKind =
   | "protected"
+  | "workspace"
   | "onboarding"
   | "rejected"
   | "suspended"
@@ -39,6 +40,14 @@ export async function requireVendorRouteAccess(routeKind: VendorRouteKind) {
     }
 
     redirect(resolveVendorLandingPath(currentSession.vendorStatus));
+  }
+
+  if (routeKind === "workspace") {
+    if (currentSession.vendorStatus === VendorStatus.SUSPENDED) {
+      redirect(VENDOR_AUTH_ROUTES.suspended);
+    }
+
+    return currentSession;
   }
 
   if (routeKind === "onboarding") {

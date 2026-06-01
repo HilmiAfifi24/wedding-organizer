@@ -5,6 +5,7 @@ import {
   DeleteVendorServiceUseCase,
   ListVendorPortfolioUseCase,
   ListVendorServicesUseCase,
+  UpdateVendorPortfolioUseCase,
   UpdateVendorServiceUseCase,
 } from "@/core/application/use-cases/vendor-assets-use-cases";
 import {
@@ -23,6 +24,7 @@ export const createVendorAssetsUseCases = () => {
     deleteVendorServiceUseCase: new DeleteVendorServiceUseCase(serviceRepository),
     listVendorPortfolioUseCase: new ListVendorPortfolioUseCase(portfolioRepository),
     createVendorPortfolioUseCase: new CreateVendorPortfolioUseCase(portfolioRepository),
+    updateVendorPortfolioUseCase: new UpdateVendorPortfolioUseCase(portfolioRepository),
     deleteVendorPortfolioUseCase: new DeleteVendorPortfolioUseCase(portfolioRepository),
   };
 };

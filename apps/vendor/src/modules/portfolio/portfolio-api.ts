@@ -42,6 +42,14 @@ export const vendorPortfolioApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  update: (
+    portfolioId: string,
+    data: { title?: string; description?: string; mediaUrl?: string; mediaType?: MediaType }
+  ) =>
+    request<PortfolioDTO>(`/api/vendor/portfolio/${portfolioId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
   remove: (portfolioId: string) =>
     request<Record<string, never>>(`/api/vendor/portfolio/${portfolioId}`, {
       method: "DELETE",
