@@ -7,3 +7,4 @@ export * from "./service-repository";
 export * from "./user-repository";
 export * from "./vendor-repository";
 export * from "./vendor-auth-repository";
+export * from "./vendor-booking-management-repository";
