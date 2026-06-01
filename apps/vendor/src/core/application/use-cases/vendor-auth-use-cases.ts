@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import {
   AuditModule,
+  MediaType,
   Role,
   VendorOnboardingStatus,
   VendorStatus,
@@ -57,6 +58,21 @@ export class RegisterVendorUseCase {
       businessAddress: input.businessAddress,
       city: input.city,
       province: input.province,
+      initialService: {
+        name: input.initialService.name.trim(),
+        description: input.initialService.description?.trim() || undefined,
+        price: input.initialService.price,
+        isActive: input.initialService.isActive ?? true,
+      },
+      initialPortfolio: {
+        title: input.initialPortfolio.title?.trim() || undefined,
+        description: input.initialPortfolio.description?.trim() || undefined,
+        mediaUrl: input.initialPortfolio.mediaUrl.trim(),
+        mediaType:
+          input.initialPortfolio.mediaType === MediaType.VIDEO
+            ? MediaType.VIDEO
+            : MediaType.IMAGE,
+      },
     });
 
     const session = await this.repository.getVendorSessionByUserId(created.userId);
@@ -72,6 +88,14 @@ export class RegisterVendorUseCase {
         email: input.email,
         businessName: input.businessName,
         status: VendorStatus.PENDING_VERIFICATION,
+        initialService: {
+          name: input.initialService.name,
+          price: input.initialService.price,
+        },
+        initialPortfolio: {
+          mediaType: input.initialPortfolio.mediaType,
+          mediaUrl: input.initialPortfolio.mediaUrl,
+        },
       },
     });
 

@@ -820,6 +820,18 @@ export interface VendorRegistrationInput {
   businessAddress: string;
   city: string;
   province: string;
+  initialService: {
+    name: string;
+    description?: string;
+    price: number;
+    isActive?: boolean;
+  };
+  initialPortfolio: {
+    title?: string;
+    description?: string;
+    mediaUrl: string;
+    mediaType: MediaType;
+  };
 }
 
 export interface UpdateVendorOnboardingInput {

@@ -242,6 +242,26 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
         },
       });
 
+      await tx.service.create({
+        data: {
+          vendorId: vendor.id,
+          name: input.initialService.name,
+          description: input.initialService.description,
+          price: input.initialService.price,
+          isActive: input.initialService.isActive ?? true,
+        },
+      });
+
+      await tx.portfolio.create({
+        data: {
+          vendorId: vendor.id,
+          title: input.initialPortfolio.title,
+          description: input.initialPortfolio.description,
+          mediaUrl: input.initialPortfolio.mediaUrl,
+          mediaType: input.initialPortfolio.mediaType,
+        },
+      });
+
       return {
         userId: user.id,
         vendorId: vendor.id,

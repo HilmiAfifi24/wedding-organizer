@@ -35,6 +35,18 @@ export interface CreateVendorRegistrationRecordInput {
   businessAddress: string;
   city: string;
   province: string;
+  initialService: {
+    name: string;
+    description?: string;
+    price: number;
+    isActive?: boolean;
+  };
+  initialPortfolio: {
+    title?: string;
+    description?: string;
+    mediaUrl: string;
+    mediaType: "IMAGE" | "VIDEO";
+  };
 }
 
 export interface VendorAuthRepository {
