@@ -55,6 +55,7 @@ enum ReviewModerationAction {
 enum AuditModule {
   USER_MANAGEMENT
   VENDOR_MANAGEMENT
+  VENDOR_PROFILE
   BOOKING_MANAGEMENT
   PAYMENT_MONITORING
   REVIEW_MODERATION
@@ -123,12 +124,23 @@ model Vendor {
   name             String
   businessName     String?
   description      String?
+  businessType     String?
+  establishedYear  Int?
   location         String?
   businessAddress  String?
   city             String?
   province         String?
+  postalCode       String?
   contactInfo      String?
   phoneNumber      String?
+  whatsappNumber   String?
+  website          String?
+  logoUrl          String?
+  coverImageUrl    String?
+  instagramUrl     String?
+  tiktokUrl        String?
+  facebookUrl      String?
+  youtubeUrl       String?
   priceRange       String?
   categoryId       String?
   status           VendorStatus @default(PENDING_VERIFICATION)
@@ -137,8 +149,10 @@ model Vendor {
   rejectedAt       DateTime?
   rejectedBy       String?
   rejectionReason  String?
+  resubmittedAt    DateTime?
   suspendedAt      DateTime?
   suspendedBy      String?
+  suspensionReason String?
   deletedAt        DateTime?
   deletedBy        String?
   createdAt        DateTime     @default(now())

@@ -1,23 +1,24 @@
-import { createVendorAuthUseCases } from "@/core/infrastructure/http/vendor-auth-factory";
-import { OnboardingForm } from "@/modules/auth/components/onboarding-form";
+import { createVendorProfileUseCases } from "@/core/infrastructure/http/profile/vendor-profile-factory";
 import { requireVendorRouteAccess } from "@/modules/auth/services/require-vendor-route-access";
+import { ProfileManager } from "@/modules/profile/components/profile-manager";
 import { VendorShell } from "@/shared/components/vendor-shell";
 
 export default async function OnboardingPage() {
   const session = await requireVendorRouteAccess("onboarding");
-  const { getVendorOnboardingUseCase, listVendorCategoriesUseCase } = createVendorAuthUseCases();
-  const [onboarding, categories] = await Promise.all([
-    getVendorOnboardingUseCase.execute(session.userId),
-    listVendorCategoriesUseCase.execute(),
+  const { getVendorProfileUseCase, listVendorProfileCategoriesUseCase } =
+    createVendorProfileUseCases();
+  const [profile, categories] = await Promise.all([
+    getVendorProfileUseCase.execute(session.userId),
+    listVendorProfileCategoriesUseCase.execute(),
   ]);
 
   return (
     <VendorShell
       session={session}
       title="Vendor Onboarding"
-      description="Lengkapi identitas bisnis, kontak, dan alamat agar vendor siap direview admin. Approval hanya bisa diberikan jika checklist verifikasi terpenuhi."
+      description="Lengkapi data profil vendor, media bisnis, dan checklist verifikasi agar siap direview admin."
     >
-      <OnboardingForm initialData={onboarding} categories={categories} />
+      <ProfileManager initialProfile={profile} categories={categories} />
     </VendorShell>
   );
 }

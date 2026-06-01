@@ -39,6 +39,7 @@ export enum ReviewModerationAction {
 export enum AuditModule {
   USER_MANAGEMENT = "USER_MANAGEMENT",
   VENDOR_MANAGEMENT = "VENDOR_MANAGEMENT",
+  VENDOR_PROFILE = "VENDOR_PROFILE",
   BOOKING_MANAGEMENT = "BOOKING_MANAGEMENT",
   PAYMENT_MONITORING = "PAYMENT_MONITORING",
   REVIEW_MODERATION = "REVIEW_MODERATION",
@@ -284,12 +285,23 @@ export interface VendorDTO {
   name: string;
   businessName?: string | null;
   description?: string | null;
+  businessType?: string | null;
+  establishedYear?: number | null;
   location?: string | null;
   businessAddress?: string | null;
   city?: string | null;
   province?: string | null;
+  postalCode?: string | null;
   contactInfo?: string | null;
   phoneNumber?: string | null;
+  whatsappNumber?: string | null;
+  website?: string | null;
+  logoUrl?: string | null;
+  coverImageUrl?: string | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  facebookUrl?: string | null;
+  youtubeUrl?: string | null;
   priceRange?: string | null;
   categoryId?: string | null;
   status: VendorStatus;
@@ -298,8 +310,10 @@ export interface VendorDTO {
   rejectedAt?: Date | null;
   rejectedBy?: string | null;
   rejectionReason?: string | null;
+  resubmittedAt?: Date | null;
   suspendedAt?: Date | null;
   suspendedBy?: string | null;
+  suspensionReason?: string | null;
   deletedAt?: Date | null;
   deletedBy?: string | null;
   createdAt: Date;
@@ -349,12 +363,31 @@ export interface VendorOnboardingDTO {
   businessAddress?: string | null;
   city?: string | null;
   province?: string | null;
+  postalCode?: string | null;
+  whatsappNumber?: string | null;
+  website?: string | null;
+  logoUrl?: string | null;
+  coverImageUrl?: string | null;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  facebookUrl?: string | null;
+  youtubeUrl?: string | null;
+  businessType?: string | null;
+  establishedYear?: number | null;
   rejectionReason?: string | null;
   rejectedAt?: Date | null;
+  resubmittedAt?: Date | null;
   suspendedAt?: Date | null;
+  suspensionReason?: string | null;
   servicesCount: number;
   portfolioCount: number;
   checklist: VendorVerificationChecklistDTO;
+}
+
+export interface VendorProfileDTO extends VendorOnboardingDTO {
+  approvedAt?: Date | null;
+  approvedById?: string | null;
+  rejectedById?: string | null;
 }
 
 export interface AdminVendorListItemDTO {
@@ -842,6 +875,25 @@ export interface UpdateVendorOnboardingInput {
   businessAddress: string;
   city: string;
   province: string;
+}
+
+export interface UpdateVendorProfileInput {
+  businessName: string;
+  description?: string;
+  categoryId: string;
+  businessType?: string;
+  establishedYear?: number;
+  phoneNumber: string;
+  whatsappNumber?: string;
+  website?: string;
+  businessAddress: string;
+  city: string;
+  province: string;
+  postalCode?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  facebookUrl?: string;
+  youtubeUrl?: string;
 }
 
 export interface CreateServiceInput {

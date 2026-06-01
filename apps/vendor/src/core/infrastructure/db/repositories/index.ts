@@ -7,3 +7,4 @@ export * from "./prisma-service-repository";
 export * from "./prisma-user-repository";
 export * from "./prisma-vendor-repository";
 export * from "./prisma-vendor-booking-management-repository";
+export * from "./prisma-vendor-profile-repository";

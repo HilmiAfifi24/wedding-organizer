@@ -28,7 +28,7 @@ export default async function VendorRejectedPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/onboarding">Edit Profile & Resubmit</Link>
+              <Link href="/profile">Edit Profile & Resubmit</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/login">Kembali ke Login</Link>

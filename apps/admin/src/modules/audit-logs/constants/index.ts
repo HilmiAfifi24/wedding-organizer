@@ -5,6 +5,7 @@ export const AUDIT_LOG_MODULE_FILTER_OPTIONS = [
   { label: "Semua Modul", value: "ALL" },
   { label: "User Management", value: AuditModule.USER_MANAGEMENT },
   { label: "Vendor Management", value: AuditModule.VENDOR_MANAGEMENT },
+  { label: "Vendor Profile", value: AuditModule.VENDOR_PROFILE },
   { label: "Booking Management", value: AuditModule.BOOKING_MANAGEMENT },
   { label: "Payment Monitoring", value: AuditModule.PAYMENT_MONITORING },
   { label: "Review Moderation", value: AuditModule.REVIEW_MODERATION },
@@ -13,6 +14,7 @@ export const AUDIT_LOG_MODULE_FILTER_OPTIONS = [
 const moduleLabels: Record<AuditModule, string> = {
   [AuditModule.USER_MANAGEMENT]: "User Management",
   [AuditModule.VENDOR_MANAGEMENT]: "Vendor Management",
+  [AuditModule.VENDOR_PROFILE]: "Vendor Profile",
   [AuditModule.BOOKING_MANAGEMENT]: "Booking Management",
   [AuditModule.PAYMENT_MONITORING]: "Payment Monitoring",
   [AuditModule.REVIEW_MODERATION]: "Review Moderation",
@@ -25,6 +27,8 @@ export const getAuditModuleBadgeVariant = (module: AuditModule): NonNullable<Bad
     case AuditModule.USER_MANAGEMENT:
       return "default";
     case AuditModule.VENDOR_MANAGEMENT:
+      return "warning";
+    case AuditModule.VENDOR_PROFILE:
       return "warning";
     case AuditModule.BOOKING_MANAGEMENT:
       return "success";

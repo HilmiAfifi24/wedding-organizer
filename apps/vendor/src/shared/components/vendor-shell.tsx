@@ -18,6 +18,7 @@ const approvedNavigationItems = [
 
 const onboardingNavigationItems = [
   { href: "/onboarding", label: "Onboarding" },
+  { href: "/profile", label: "Profile" },
   { href: "/services", label: "Services" },
   { href: "/portfolio", label: "Portfolio" },
 ];

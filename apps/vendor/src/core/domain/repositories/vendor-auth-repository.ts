@@ -20,6 +20,7 @@ export interface VendorAuthUserRecord {
   rejectionReason: string | null;
   rejectedAt: Date | null;
   suspendedAt: Date | null;
+  suspensionReason: string | null;
   userDeletedAt: Date | null;
   userSuspendedAt: Date | null;
   vendorDeletedAt: Date | null;

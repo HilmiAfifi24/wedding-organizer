@@ -38,6 +38,7 @@ type VendorSessionRecord = {
   rejectionReason: string | null;
   rejectedAt: Date | null;
   suspendedAt: Date | null;
+  suspensionReason: string | null;
   owner: {
     id: string;
     email: string;
@@ -53,13 +54,25 @@ type VendorOnboardingRecord = {
   id: string;
   businessName: string | null;
   description: string | null;
+  businessType: string | null;
+  establishedYear: number | null;
   categoryId: string | null;
   phoneNumber: string | null;
+  whatsappNumber: string | null;
+  website: string | null;
   businessAddress: string | null;
   city: string | null;
   province: string | null;
+  postalCode: string | null;
+  logoUrl: string | null;
+  coverImageUrl: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  facebookUrl: string | null;
+  youtubeUrl: string | null;
   rejectionReason: string | null;
   rejectedAt: Date | null;
+  resubmittedAt: Date | null;
   suspendedAt: Date | null;
   status: "PENDING_VERIFICATION" | "APPROVED" | "REJECTED" | "SUSPENDED";
   owner: {
@@ -87,6 +100,7 @@ const mapVendorSession = (record: VendorSessionRecord): VendorSessionDTO => ({
   businessName: record.businessName,
   rejectionReason: record.rejectionReason,
   rejectedAt: record.rejectedAt,
+  suspensionReason: record.suspensionReason,
   suspendedAt: record.suspendedAt,
 });
 
@@ -110,14 +124,26 @@ const mapVendorOnboarding = (record: VendorOnboardingRecord): VendorOnboardingDT
     onboardingStatus: resolveVendorOnboardingStatus(checklist),
     businessName: record.businessName,
     description: record.description,
+    businessType: record.businessType,
+    establishedYear: record.establishedYear,
     categoryId: record.categoryId,
     categoryName: record.category?.name ?? null,
     phoneNumber: record.phoneNumber,
+    whatsappNumber: record.whatsappNumber,
+    website: record.website,
     businessAddress: record.businessAddress,
     city: record.city,
     province: record.province,
+    postalCode: record.postalCode,
+    logoUrl: record.logoUrl,
+    coverImageUrl: record.coverImageUrl,
+    instagramUrl: record.instagramUrl,
+    tiktokUrl: record.tiktokUrl,
+    facebookUrl: record.facebookUrl,
+    youtubeUrl: record.youtubeUrl,
     rejectionReason: record.rejectionReason,
     rejectedAt: record.rejectedAt,
+    resubmittedAt: record.resubmittedAt,
     suspendedAt: record.suspendedAt,
     servicesCount: record._count.services,
     portfolioCount: record._count.portfolio,
@@ -145,6 +171,7 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
             rejectedAt: true,
             rejectionReason: true,
             suspendedAt: true,
+            suspensionReason: true,
             deletedAt: true,
           },
         },
@@ -167,6 +194,7 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
       rejectionReason: user.vendor?.rejectionReason ?? null,
       rejectedAt: user.vendor?.rejectedAt ?? null,
       suspendedAt: user.vendor?.suspendedAt ?? null,
+      suspensionReason: user.vendor?.suspensionReason ?? null,
       userDeletedAt: user.deletedAt,
       userSuspendedAt: user.suspendedAt,
       vendorDeletedAt: user.vendor?.deletedAt ?? null,
@@ -281,6 +309,7 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
         rejectionReason: true,
         rejectedAt: true,
         suspendedAt: true,
+        suspensionReason: true,
         status: true,
         owner: {
           select: {
@@ -312,13 +341,25 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
         id: true,
         businessName: true,
         description: true,
+        businessType: true,
+        establishedYear: true,
         categoryId: true,
         phoneNumber: true,
+        whatsappNumber: true,
+        website: true,
         businessAddress: true,
         city: true,
         province: true,
+        postalCode: true,
+        logoUrl: true,
+        coverImageUrl: true,
+        instagramUrl: true,
+        tiktokUrl: true,
+        facebookUrl: true,
+        youtubeUrl: true,
         rejectionReason: true,
         rejectedAt: true,
+        resubmittedAt: true,
         suspendedAt: true,
         status: true,
         owner: {
@@ -377,13 +418,25 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
         id: true,
         businessName: true,
         description: true,
+        businessType: true,
+        establishedYear: true,
         categoryId: true,
         phoneNumber: true,
+        whatsappNumber: true,
+        website: true,
         businessAddress: true,
         city: true,
         province: true,
+        postalCode: true,
+        logoUrl: true,
+        coverImageUrl: true,
+        instagramUrl: true,
+        tiktokUrl: true,
+        facebookUrl: true,
+        youtubeUrl: true,
         rejectionReason: true,
         rejectedAt: true,
+        resubmittedAt: true,
         suspendedAt: true,
         status: true,
         owner: {
@@ -423,6 +476,7 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
         rejectedAt: null,
         rejectedBy: null,
         rejectionReason: null,
+        resubmittedAt: new Date(),
       },
     });
 
@@ -432,13 +486,25 @@ export class PrismaVendorAuthRepository implements VendorAuthRepository {
         id: true,
         businessName: true,
         description: true,
+        businessType: true,
+        establishedYear: true,
         categoryId: true,
         phoneNumber: true,
+        whatsappNumber: true,
+        website: true,
         businessAddress: true,
         city: true,
         province: true,
+        postalCode: true,
+        logoUrl: true,
+        coverImageUrl: true,
+        instagramUrl: true,
+        tiktokUrl: true,
+        facebookUrl: true,
+        youtubeUrl: true,
         rejectionReason: true,
         rejectedAt: true,
+        resubmittedAt: true,
         suspendedAt: true,
         status: true,
         owner: {
