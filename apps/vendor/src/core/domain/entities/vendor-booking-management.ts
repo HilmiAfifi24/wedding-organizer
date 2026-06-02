@@ -2,7 +2,7 @@ import { BookingStatus } from "@wo/shared-types";
 
 const allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
   [BookingStatus.PENDING]: [BookingStatus.PENDING_PAYMENT, BookingStatus.REJECTED],
-  [BookingStatus.PENDING_PAYMENT]: [BookingStatus.CONFIRMED, BookingStatus.CANCELLED],
+  [BookingStatus.PENDING_PAYMENT]: [BookingStatus.CANCELLED],
   [BookingStatus.CONFIRMED]: [BookingStatus.COMPLETED, BookingStatus.CANCELLED],
   [BookingStatus.REJECTED]: [],
   [BookingStatus.COMPLETED]: [],

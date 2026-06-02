@@ -1,5 +1,5 @@
 import { requireVendorRouteAccess } from "@/modules/auth/services/require-vendor-route-access";
-import { VendorModulePlaceholder } from "@/shared/components/vendor-module-placeholder";
+import { PaymentsManagementDashboard } from "@/modules/payments/components/payments-management-dashboard";
 import { VendorShell } from "@/shared/components/vendor-shell";
 
 export default async function VendorPaymentsPage() {
@@ -8,13 +8,10 @@ export default async function VendorPaymentsPage() {
   return (
     <VendorShell
       session={session}
-      title="Pembayaran Vendor"
-      description="Vendor approved akan memonitor payment proof booking dan melakukan verifikasi sesuai alur pembayaran offline."
+      title="Vendor Payments"
+      description="Monitor payment proof dari booking Anda, verifikasi pembayaran offline, dan pastikan setiap perubahan status terekam rapi."
     >
-      <VendorModulePlaceholder
-        title="Pembayaran Vendor Menunggu Modul Operasional"
-        description="Alur login vendor dan proteksi status sudah siap. Tahap berikutnya tinggal menambahkan monitoring payment proof khusus vendor."
-      />
+      <PaymentsManagementDashboard />
     </VendorShell>
   );
 }

@@ -64,14 +64,6 @@ export const getAvailableBookingActions = (booking: AdminBookingDetailDTO) => {
   }
 
   if (booking.status === BookingStatus.PENDING_PAYMENT) {
-    if (booking.paymentProof) {
-      actions.push({
-        status: BookingStatus.CONFIRMED,
-        label: "Verify Payment",
-        description: "Verifikasi payment proof lalu konfirmasi booking.",
-      });
-    }
-
     actions.push({
       status: BookingStatus.CANCELLED,
       label: "Cancel Booking",

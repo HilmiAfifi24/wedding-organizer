@@ -138,10 +138,7 @@ export class UpdateVendorBookingStatusUseCase {
       });
     }
 
-    if (
-      before.status === BookingStatus.PENDING_PAYMENT &&
-      (payload.status === BookingStatus.CONFIRMED || payload.status === BookingStatus.CANCELLED)
-    ) {
+    if (before.status === BookingStatus.PENDING_PAYMENT && payload.status === BookingStatus.CANCELLED) {
       return this.repository.transitionBookingStatus({
         vendorId: input.vendorId,
         bookingId: input.bookingId,

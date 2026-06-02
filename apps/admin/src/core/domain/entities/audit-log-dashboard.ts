@@ -39,6 +39,8 @@ export const inferAuditTargetPath = (module: AuditModule, targetId: string): str
       return `/vendors/${targetId}`;
     case AuditModule.VENDOR_PROFILE:
       return `/vendors/${targetId}`;
+    case AuditModule.VENDOR_PAYMENTS:
+      return `/payments/${targetId}`;
     case AuditModule.BOOKING_MANAGEMENT:
       return `/bookings/${targetId}`;
     case AuditModule.PAYMENT_MONITORING:
