@@ -4,6 +4,9 @@ import type {
   BookingStatusHistoryDTO,
   CreateAuditLogInput,
   ListOptions,
+  PaginatedResult,
+  PaymentProofStatus,
+  PaymentProofStatusHistoryDTO,
   PaymentStatus,
   PaymentTermStatus,
   PaymentType,
@@ -12,8 +15,12 @@ import type {
 export interface BookingVendorSnapshotDTO {
   id: string;
   businessName: string;
+  categoryName?: string | null;
   city?: string | null;
   province?: string | null;
+  contactInfo?: string | null;
+  phoneNumber?: string | null;
+  whatsappNumber?: string | null;
   coverImageUrl?: string | null;
   logoUrl?: string | null;
 }
@@ -75,10 +82,51 @@ export interface UserBookingListItemDTO {
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number;
+  remainingBalance: number;
   customerName: string;
   createdAt: Date;
   vendor: BookingVendorSnapshotDTO;
   service: Pick<BookingServiceSnapshotDTO, "id" | "name" | "price"> | null;
+}
+
+export interface UserBookingPaymentProofItemDTO {
+  id: string;
+  bookingId: string;
+  paymentTermId: string;
+  paymentTermType: PaymentType;
+  paymentTermSequence: number;
+  amount: number;
+  fileUrl: string;
+  status: PaymentProofStatus;
+  note?: string | null;
+  verificationNote?: string | null;
+  rejectionReason?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  history: PaymentProofStatusHistoryDTO[];
+}
+
+export interface UserBookingPaymentTermItemDTO {
+  id: string;
+  bookingId: string;
+  type: PaymentType;
+  amount: number;
+  status: PaymentTermStatus;
+  dueDate?: Date | null;
+  sequence: number;
+  latestProof: Pick<
+    UserBookingPaymentProofItemDTO,
+    "id" | "paymentTermId" | "amount" | "fileUrl" | "status" | "note" | "verificationNote" | "rejectionReason" | "createdAt" | "updatedAt"
+  > | null;
+}
+
+export interface UserBookingTimelineItemDTO {
+  id: string;
+  type: string;
+  title: string;
+  description?: string | null;
+  actorName?: string | null;
+  createdAt: Date;
 }
 
 export interface UserBookingDetailDTO extends UserBookingListItemDTO {
@@ -93,7 +141,24 @@ export interface UserBookingDetailDTO extends UserBookingListItemDTO {
   specialRequest?: string | null;
   updatedAt: Date;
   history: BookingStatusHistoryDTO[];
+  totalPaidAmount: number;
+  paymentTerms: UserBookingPaymentTermItemDTO[];
+  paymentProofs: UserBookingPaymentProofItemDTO[];
+  timeline: UserBookingTimelineItemDTO[];
   service: BookingServiceSnapshotDTO | null;
+}
+
+export type UserBookingListSort = "newest" | "oldest" | "event-date-nearest";
+
+export interface UserBookingListQuery {
+  page: number;
+  limit: number;
+  search?: string;
+  bookingStatus?: BookingStatus;
+  paymentStatus?: PaymentStatus;
+  eventDateFrom?: Date;
+  eventDateTo?: Date;
+  sort: UserBookingListSort;
 }
 
 export interface BookingAuditLogInput
@@ -115,5 +180,13 @@ export interface BookingRepository {
   hasActiveDuplicateBooking(input: DuplicateBookingCheckInput): Promise<boolean>;
   create(input: CreateUserBookingRecordInput, auditLog: BookingAuditLogInput): Promise<UserBookingDetailDTO>;
   findDetailByIdForUser(id: string, userId: string): Promise<UserBookingDetailDTO | null>;
-  listByUser(userId: string, options?: ListOptions): Promise<UserBookingListItemDTO[]>;
+  listByUser(
+    userId: string,
+    query: UserBookingListQuery,
+    options?: ListOptions
+  ): Promise<PaginatedResult<UserBookingListItemDTO>>;
+  findTimelineByBookingIdForUser(
+    bookingId: string,
+    userId: string
+  ): Promise<UserBookingTimelineItemDTO[] | null>;
 }

@@ -48,7 +48,12 @@ export function BookingPaymentsSummary({ summary }: { summary: UserBookingPaymen
 
         <div className="grid gap-4 xl:grid-cols-2">
           {summary.terms.map((term) => (
-            <PaymentTermCard key={term.id} bookingId={summary.bookingId} term={term} />
+            <PaymentTermCard
+              key={term.id}
+              bookingId={summary.bookingId}
+              bookingStatus={summary.bookingStatus}
+              term={term}
+            />
           ))}
         </div>
       </section>

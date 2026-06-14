@@ -3,6 +3,10 @@ import type {
   CreateUserBookingInput,
   UserBookingDetailDTO,
   UserBookingListItemDTO,
+  UserBookingListQuery,
+  UserBookingPaymentProofItemDTO,
+  UserBookingPaymentTermItemDTO,
+  UserBookingTimelineItemDTO,
 } from "@/core/domain/repositories";
 
 export type BookingFormVendor = Pick<
@@ -49,4 +53,11 @@ export interface BookingFormProps {
   };
 }
 
-export type { UserBookingDetailDTO, UserBookingListItemDTO };
+export type {
+  UserBookingDetailDTO,
+  UserBookingListItemDTO,
+  UserBookingListQuery,
+  UserBookingPaymentProofItemDTO,
+  UserBookingPaymentTermItemDTO,
+  UserBookingTimelineItemDTO,
+};

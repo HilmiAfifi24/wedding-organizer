@@ -12,7 +12,10 @@ import type {
   CreateUserBookingInput,
   UserBookingDetailDTO,
   UserBookingListItemDTO,
+  UserBookingListQuery,
+  UserBookingTimelineItemDTO,
 } from "@/core/domain/repositories";
+import type { PaginatedResult } from "@wo/shared-types";
 
 const APPROVED_VENDOR_STATUS = "APPROVED";
 const DEFAULT_PAYMENT_TERM_DISTRIBUTION = [
@@ -161,11 +164,29 @@ export class GetUserBookingDetailUseCase {
   }
 }
 
+export class GetUserBookingTimelineUseCase {
+  constructor(private readonly repository: BookingRepository) {}
+
+  async execute(bookingId: string, actor: UserSessionDTO): Promise<UserBookingTimelineItemDTO[]> {
+    const session = ensureActiveUserSession(actor);
+    const timeline = await this.repository.findTimelineByBookingIdForUser(bookingId, session.userId);
+
+    if (!timeline) {
+      throw new Error("Booking tidak ditemukan");
+    }
+
+    return timeline;
+  }
+}
+
 export class ListUserBookingsUseCase {
   constructor(private readonly repository: BookingRepository) {}
 
-  async execute(actor: UserSessionDTO): Promise<UserBookingListItemDTO[]> {
+  async execute(
+    query: UserBookingListQuery,
+    actor: UserSessionDTO
+  ): Promise<PaginatedResult<UserBookingListItemDTO>> {
     const session = ensureActiveUserSession(actor);
-    return this.repository.listByUser(session.userId);
+    return this.repository.listByUser(session.userId, query);
   }
 }

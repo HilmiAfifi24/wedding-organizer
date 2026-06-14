@@ -15,6 +15,12 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   [PaymentStatus.PAID]: "Lunas",
 };
 
+export const BOOKING_SORT_OPTIONS = [
+  { label: "Terbaru", value: "newest" },
+  { label: "Terlama", value: "oldest" },
+  { label: "Tanggal acara terdekat", value: "event-date-nearest" },
+] as const;
+
 export const formatBookingPrice = (price: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",

@@ -21,9 +21,8 @@ export async function GET(
       return errorResponse(400, "Invalid route parameters", parsedParams.error.flatten());
     }
 
-    const { id } = parsedParams.data;
-    const { getUserBookingDetailUseCase } = createUserBookingUseCases();
-    const data = await getUserBookingDetailUseCase.execute(id, session);
+    const { getUserBookingTimelineUseCase } = createUserBookingUseCases();
+    const data = await getUserBookingTimelineUseCase.execute(parsedParams.data.id, session);
 
     return successResponse(data, 200, "Success");
   } catch (error) {

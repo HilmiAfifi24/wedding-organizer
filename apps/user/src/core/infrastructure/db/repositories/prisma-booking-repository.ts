@@ -4,7 +4,12 @@ import { randomUUID } from "node:crypto";
 import type {
   BookingStatus,
   ListOptions,
+  PaginatedResult,
+  PaymentProofStatus,
+  PaymentProofStatusHistoryDTO,
   PaymentStatus,
+  PaymentTermStatus,
+  PaymentType,
 } from "@wo/shared-types";
 import { AuditModule } from "@wo/shared-types";
 
@@ -15,6 +20,10 @@ import type {
   CreateUserBookingRecordInput,
   UserBookingDetailDTO,
   UserBookingListItemDTO,
+  UserBookingListQuery,
+  UserBookingPaymentProofItemDTO,
+  UserBookingPaymentTermItemDTO,
+  UserBookingTimelineItemDTO,
 } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
@@ -24,6 +33,9 @@ type BookingCodeClient = Pick<typeof prisma, "booking">;
 
 const mapBookingStatus = (status: string) => status as BookingStatus;
 const mapPaymentStatus = (status: string) => status as PaymentStatus;
+const mapPaymentTermStatus = (status: string) => status as PaymentTermStatus;
+const mapPaymentType = (type: string) => type as PaymentType;
+const mapPaymentProofStatus = (status: string) => status as PaymentProofStatus;
 
 const toJsonValue = (value: unknown) => {
   if (value === undefined) {
@@ -70,6 +82,33 @@ const getNextBookingCode = async (tx: BookingCodeClient, date: Date) => {
   return `${prefix}${String(nextSequence).padStart(4, "0")}`;
 };
 
+const mapPaymentProofHistory = (
+  history: Array<{
+    id: string;
+    paymentProofId: string;
+    previousStatus: string | null;
+    newStatus: string;
+    changedById: string | null;
+    note: string | null;
+    isOverride: boolean;
+    createdAt: Date;
+    changedBy: {
+      name: string | null;
+    } | null;
+  }>
+): PaymentProofStatusHistoryDTO[] =>
+  history.map((item) => ({
+    id: item.id,
+    paymentProofId: item.paymentProofId,
+    previousStatus: item.previousStatus ? mapPaymentProofStatus(item.previousStatus) : null,
+    newStatus: mapPaymentProofStatus(item.newStatus),
+    changedById: item.changedById,
+    changedByName: item.changedBy?.name ?? null,
+    note: item.note,
+    isOverride: item.isOverride,
+    createdAt: item.createdAt,
+  }));
+
 const mapBookingHistory = (
   history: Array<{
     id: string;
@@ -94,6 +133,319 @@ const mapBookingHistory = (
     note: item.note,
     createdAt: item.createdAt,
   }));
+
+const calculateRemainingBalance = (
+  totalAmount: number,
+  paymentTerms: Array<{
+    amount: number;
+    status: string;
+  }>
+) => {
+  const totalPaidAmount = paymentTerms
+    .filter((term) => term.status === "VERIFIED")
+    .reduce((sum, term) => sum + term.amount, 0);
+
+  return {
+    totalPaidAmount,
+    remainingBalance: Math.max(totalAmount - totalPaidAmount, 0),
+  };
+};
+
+const mapPaymentProofItem = (proof: {
+  id: string;
+  bookingId: string;
+  paymentTermId: string;
+  amount: number;
+  fileUrl: string;
+  status: string;
+  note: string | null;
+  verificationNote: string | null;
+  rejectionReason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  paymentTerm: {
+    type: string;
+    sequence: number;
+  };
+  statusHistory: Array<{
+    id: string;
+    paymentProofId: string;
+    previousStatus: string | null;
+    newStatus: string;
+    changedById: string | null;
+    note: string | null;
+    isOverride: boolean;
+    createdAt: Date;
+    changedBy: {
+      name: string | null;
+    } | null;
+  }>;
+}): UserBookingPaymentProofItemDTO => ({
+  id: proof.id,
+  bookingId: proof.bookingId,
+  paymentTermId: proof.paymentTermId,
+  paymentTermType: mapPaymentType(proof.paymentTerm.type),
+  paymentTermSequence: proof.paymentTerm.sequence,
+  amount: proof.amount,
+  fileUrl: proof.fileUrl,
+  status: mapPaymentProofStatus(proof.status),
+  note: proof.note,
+  verificationNote: proof.verificationNote,
+  rejectionReason: proof.rejectionReason,
+  createdAt: proof.createdAt,
+  updatedAt: proof.updatedAt,
+  history: mapPaymentProofHistory(proof.statusHistory),
+});
+
+const mapPaymentTermItem = (term: {
+  id: string;
+  bookingId: string;
+  type: string;
+  amount: number;
+  status: string;
+  dueDate: Date | null;
+  sequence: number;
+  paymentProofs: Array<{
+    id: string;
+    paymentTermId: string;
+    amount: number;
+    fileUrl: string;
+    status: string;
+    note: string | null;
+    verificationNote: string | null;
+    rejectionReason: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+}): UserBookingPaymentTermItemDTO => ({
+  id: term.id,
+  bookingId: term.bookingId,
+  type: mapPaymentType(term.type),
+  amount: term.amount,
+  status: mapPaymentTermStatus(term.status),
+  dueDate: term.dueDate,
+  sequence: term.sequence,
+  latestProof: term.paymentProofs[0]
+    ? {
+        id: term.paymentProofs[0].id,
+        paymentTermId: term.paymentProofs[0].paymentTermId,
+        amount: term.paymentProofs[0].amount,
+        fileUrl: term.paymentProofs[0].fileUrl,
+        status: mapPaymentProofStatus(term.paymentProofs[0].status),
+        note: term.paymentProofs[0].note,
+        verificationNote: term.paymentProofs[0].verificationNote,
+        rejectionReason: term.paymentProofs[0].rejectionReason,
+        createdAt: term.paymentProofs[0].createdAt,
+        updatedAt: term.paymentProofs[0].updatedAt,
+      }
+    : null,
+});
+
+const mapBookingTimelineItem = (item: {
+  id: string;
+  previousStatus: string | null;
+  newStatus: string;
+  note: string | null;
+  createdAt: Date;
+  changedBy: {
+    name: string | null;
+  } | null;
+}): UserBookingTimelineItemDTO => {
+  const nextStatus = mapBookingStatus(item.newStatus);
+
+  if (!item.previousStatus && nextStatus === "PENDING") {
+    return {
+      id: `booking-${item.id}`,
+      type: "BOOKING_CREATED",
+      title: "Booking dibuat",
+      description: item.note ?? "Permintaan booking berhasil dibuat dan menunggu respons vendor.",
+      actorName: item.changedBy?.name ?? null,
+      createdAt: item.createdAt,
+    };
+  }
+
+  if (nextStatus === "PENDING_PAYMENT") {
+    return {
+      id: `booking-${item.id}`,
+      type: "BOOKING_ACCEPTED",
+      title: "Vendor menerima booking",
+      description: item.note ?? "Vendor menerima booking dan menunggu pembayaran Anda.",
+      actorName: item.changedBy?.name ?? null,
+      createdAt: item.createdAt,
+    };
+  }
+
+  if (nextStatus === "REJECTED") {
+    return {
+      id: `booking-${item.id}`,
+      type: "BOOKING_REJECTED",
+      title: "Booking ditolak",
+      description: item.note ?? "Vendor menolak booking ini.",
+      actorName: item.changedBy?.name ?? null,
+      createdAt: item.createdAt,
+    };
+  }
+
+  if (nextStatus === "CONFIRMED") {
+    return {
+      id: `booking-${item.id}`,
+      type: "BOOKING_CONFIRMED",
+      title: "Booking dikonfirmasi",
+      description: item.note ?? "Booking telah dikonfirmasi setelah pembayaran diverifikasi.",
+      actorName: item.changedBy?.name ?? null,
+      createdAt: item.createdAt,
+    };
+  }
+
+  if (nextStatus === "COMPLETED") {
+    return {
+      id: `booking-${item.id}`,
+      type: "BOOKING_COMPLETED",
+      title: "Booking selesai",
+      description: item.note ?? "Acara atau layanan telah selesai dilaksanakan.",
+      actorName: item.changedBy?.name ?? null,
+      createdAt: item.createdAt,
+    };
+  }
+
+  if (nextStatus === "CANCELLED") {
+    return {
+      id: `booking-${item.id}`,
+      type: "BOOKING_CANCELLED",
+      title: "Booking dibatalkan",
+      description: item.note ?? "Booking dibatalkan.",
+      actorName: item.changedBy?.name ?? null,
+      createdAt: item.createdAt,
+    };
+  }
+
+  return {
+    id: `booking-${item.id}`,
+    type: `BOOKING_${nextStatus}`,
+    title: `Status booking berubah ke ${nextStatus}`,
+    description: item.note,
+    actorName: item.changedBy?.name ?? null,
+    createdAt: item.createdAt,
+  };
+};
+
+const mapPaymentTimelineItem = (input: {
+  proofId: string;
+  paymentTermType: string;
+  paymentTermSequence: number;
+  history: {
+    id: string;
+    previousStatus: string | null;
+    newStatus: string;
+    note: string | null;
+    createdAt: Date;
+    changedBy: {
+      name: string | null;
+    } | null;
+  };
+}): UserBookingTimelineItemDTO => {
+  const nextStatus = mapPaymentProofStatus(input.history.newStatus);
+  const termLabel = `Termin ${input.paymentTermSequence} · ${input.paymentTermType}`;
+
+  if (!input.history.previousStatus && nextStatus === "PENDING") {
+    return {
+      id: `payment-${input.history.id}`,
+      type: "PAYMENT_PROOF_UPLOADED",
+      title: "Bukti pembayaran diunggah",
+      description: input.history.note ?? `${termLabel} berhasil diunggah dan menunggu verifikasi.`,
+      actorName: input.history.changedBy?.name ?? null,
+      createdAt: input.history.createdAt,
+    };
+  }
+
+  if (input.history.previousStatus === "REJECTED" && nextStatus === "PENDING") {
+    return {
+      id: `payment-${input.history.id}`,
+      type: "PAYMENT_PROOF_REUPLOADED",
+      title: "Bukti pembayaran diunggah ulang",
+      description: input.history.note ?? `${termLabel} diunggah ulang setelah sebelumnya ditolak.`,
+      actorName: input.history.changedBy?.name ?? null,
+      createdAt: input.history.createdAt,
+    };
+  }
+
+  if (nextStatus === "VERIFIED") {
+    return {
+      id: `payment-${input.history.id}`,
+      type: "PAYMENT_VERIFIED",
+      title: "Pembayaran diverifikasi",
+      description: input.history.note ?? `${termLabel} telah diverifikasi oleh vendor.`,
+      actorName: input.history.changedBy?.name ?? null,
+      createdAt: input.history.createdAt,
+    };
+  }
+
+  if (nextStatus === "REJECTED") {
+    return {
+      id: `payment-${input.history.id}`,
+      type: "PAYMENT_REJECTED",
+      title: "Pembayaran ditolak",
+      description: input.history.note ?? `${termLabel} ditolak dan perlu diunggah ulang.`,
+      actorName: input.history.changedBy?.name ?? null,
+      createdAt: input.history.createdAt,
+    };
+  }
+
+  return {
+    id: `payment-${input.history.id}`,
+    type: `PAYMENT_${nextStatus}`,
+    title: `Status pembayaran berubah ke ${nextStatus}`,
+    description: input.history.note,
+    actorName: input.history.changedBy?.name ?? null,
+    createdAt: input.history.createdAt,
+  };
+};
+
+const buildTimeline = (input: {
+  bookingHistory: Array<{
+    id: string;
+    previousStatus: string | null;
+    newStatus: string;
+    note: string | null;
+    createdAt: Date;
+    changedBy: {
+      name: string | null;
+    } | null;
+  }>;
+  paymentProofs: Array<{
+    id: string;
+    paymentTerm: {
+      type: string;
+      sequence: number;
+    };
+    statusHistory: Array<{
+      id: string;
+      previousStatus: string | null;
+      newStatus: string;
+      note: string | null;
+      createdAt: Date;
+      changedBy: {
+        name: string | null;
+      } | null;
+    }>;
+  }>;
+}): UserBookingTimelineItemDTO[] => {
+  const bookingItems = input.bookingHistory.map((item) => mapBookingTimelineItem(item));
+  const paymentItems = input.paymentProofs.flatMap((proof) =>
+    proof.statusHistory.map((history) =>
+      mapPaymentTimelineItem({
+        proofId: proof.id,
+        paymentTermType: proof.paymentTerm.type,
+        paymentTermSequence: proof.paymentTerm.sequence,
+        history,
+      })
+    )
+  );
+
+  return [...bookingItems, ...paymentItems].sort(
+    (left, right) => left.createdAt.getTime() - right.createdAt.getTime()
+  );
+};
 
 const mapBookingDetail = (
   booking:
@@ -122,8 +474,14 @@ const mapBookingDetail = (
           businessName: string | null;
           city: string | null;
           province: string | null;
+          contactInfo: string | null;
+          phoneNumber: string | null;
+          whatsappNumber: string | null;
           coverImageUrl: string | null;
           logoUrl: string | null;
+          category: {
+            name: string;
+          } | null;
         };
         service: {
           id: string;
@@ -145,12 +503,70 @@ const mapBookingDetail = (
             name: string | null;
           } | null;
         }>;
+        paymentTerms: Array<{
+          id: string;
+          bookingId: string;
+          type: string;
+          amount: number;
+          status: string;
+          dueDate: Date | null;
+          sequence: number;
+          paymentProofs: Array<{
+            id: string;
+            paymentTermId: string;
+            amount: number;
+            fileUrl: string;
+            status: string;
+            note: string | null;
+            verificationNote: string | null;
+            rejectionReason: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+          }>;
+        }>;
+        paymentProofs: Array<{
+          id: string;
+          bookingId: string;
+          paymentTermId: string;
+          amount: number;
+          fileUrl: string;
+          status: string;
+          note: string | null;
+          verificationNote: string | null;
+          rejectionReason: string | null;
+          createdAt: Date;
+          updatedAt: Date;
+          paymentTerm: {
+            type: string;
+            sequence: number;
+          };
+          statusHistory: Array<{
+            id: string;
+            paymentProofId: string;
+            previousStatus: string | null;
+            newStatus: string;
+            changedById: string | null;
+            note: string | null;
+            isOverride: boolean;
+            createdAt: Date;
+            changedBy: {
+              name: string | null;
+            } | null;
+          }>;
+        }>;
       }
     | null
 ): UserBookingDetailDTO | null => {
   if (!booking || !booking.vendor.businessName) {
     return null;
   }
+
+  const paymentTerms = booking.paymentTerms.map((term) => mapPaymentTermItem(term));
+  const paymentProofs = booking.paymentProofs.map((proof) => mapPaymentProofItem(proof));
+  const { totalPaidAmount, remainingBalance } = calculateRemainingBalance(
+    booking.totalAmount,
+    booking.paymentTerms
+  );
 
   return {
     id: booking.id,
@@ -164,6 +580,8 @@ const mapBookingDetail = (
     status: mapBookingStatus(booking.status),
     paymentStatus: mapPaymentStatus(booking.paymentStatus),
     totalAmount: booking.totalAmount,
+    totalPaidAmount,
+    remainingBalance,
     customerName: booking.customerName,
     customerPhone: booking.customerPhone,
     customerEmail: booking.customerEmail,
@@ -175,8 +593,12 @@ const mapBookingDetail = (
     vendor: {
       id: booking.vendor.id,
       businessName: booking.vendor.businessName,
+      categoryName: booking.vendor.category?.name ?? null,
       city: booking.vendor.city,
       province: booking.vendor.province,
+      contactInfo: booking.vendor.contactInfo,
+      phoneNumber: booking.vendor.phoneNumber,
+      whatsappNumber: booking.vendor.whatsappNumber,
       coverImageUrl: booking.vendor.coverImageUrl,
       logoUrl: booking.vendor.logoUrl,
     },
@@ -191,6 +613,12 @@ const mapBookingDetail = (
         }
       : null,
     history: mapBookingHistory(booking.statusHistory),
+    paymentTerms,
+    paymentProofs,
+    timeline: buildTimeline({
+      bookingHistory: booking.statusHistory,
+      paymentProofs: booking.paymentProofs,
+    }),
   };
 };
 
@@ -217,10 +645,16 @@ const mapBookingListItem = (booking: {
     name: string;
     price: number;
   } | null;
+  paymentTerms: Array<{
+    amount: number;
+    status: string;
+  }>;
 }): UserBookingListItemDTO | null => {
   if (!booking.vendor.businessName) {
     return null;
   }
+
+  const { remainingBalance } = calculateRemainingBalance(booking.totalAmount, booking.paymentTerms);
 
   return {
     id: booking.id,
@@ -230,6 +664,7 @@ const mapBookingListItem = (booking: {
     status: mapBookingStatus(booking.status),
     paymentStatus: mapPaymentStatus(booking.paymentStatus),
     totalAmount: booking.totalAmount,
+    remainingBalance,
     customerName: booking.customerName,
     createdAt: booking.createdAt,
     vendor: {
@@ -248,6 +683,99 @@ const mapBookingListItem = (booking: {
         }
       : null,
   };
+};
+
+const bookingDetailInclude = {
+  vendor: {
+    select: {
+      id: true,
+      businessName: true,
+      city: true,
+      province: true,
+      contactInfo: true,
+      phoneNumber: true,
+      whatsappNumber: true,
+      coverImageUrl: true,
+      logoUrl: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+  service: {
+    select: {
+      id: true,
+      vendorId: true,
+      name: true,
+      description: true,
+      price: true,
+      isActive: true,
+    },
+  },
+  statusHistory: {
+    orderBy: {
+      createdAt: "asc" as const,
+    },
+    include: {
+      changedBy: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  },
+  paymentTerms: {
+    orderBy: {
+      sequence: "asc" as const,
+    },
+    include: {
+      paymentProofs: {
+        orderBy: {
+          createdAt: "desc" as const,
+        },
+        take: 1,
+        select: {
+          id: true,
+          paymentTermId: true,
+          amount: true,
+          fileUrl: true,
+          status: true,
+          note: true,
+          verificationNote: true,
+          rejectionReason: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  },
+  paymentProofs: {
+    orderBy: {
+      createdAt: "desc" as const,
+    },
+    include: {
+      paymentTerm: {
+        select: {
+          type: true,
+          sequence: true,
+        },
+      },
+      statusHistory: {
+        orderBy: {
+          createdAt: "asc" as const,
+        },
+        include: {
+          changedBy: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 export class PrismaBookingRepository implements BookingRepository {
@@ -333,75 +861,115 @@ export class PrismaBookingRepository implements BookingRepository {
         id,
         userId,
       },
-      include: {
-        vendor: {
-          select: {
-            id: true,
-            businessName: true,
-            city: true,
-            province: true,
-            coverImageUrl: true,
-            logoUrl: true,
-          },
-        },
-        service: {
-          select: {
-            id: true,
-            vendorId: true,
-            name: true,
-            description: true,
-            price: true,
-            isActive: true,
-          },
-        },
-        statusHistory: {
-          orderBy: {
-            createdAt: "asc",
-          },
-          include: {
-            changedBy: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: bookingDetailInclude,
     });
 
     return mapBookingDetail(booking);
   }
 
-  async listByUser(userId: string, options?: ListOptions): Promise<UserBookingListItemDTO[]> {
-    const bookings = await prisma.booking.findMany({
-      where: { userId },
-      take: options?.take,
-      skip: options?.skip,
-      orderBy: { createdAt: "desc" },
-      include: {
-        vendor: {
-          select: {
-            id: true,
-            businessName: true,
-            city: true,
-            province: true,
-            coverImageUrl: true,
-            logoUrl: true,
-          },
-        },
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-          },
-        },
-      },
-    });
+  async listByUser(
+    userId: string,
+    query: UserBookingListQuery,
+    options?: ListOptions
+  ): Promise<PaginatedResult<UserBookingListItemDTO>> {
+    const limit = options?.take ?? query.limit;
+    const page = Math.max(query.page, 1);
+    const skip = options?.skip ?? (page - 1) * limit;
 
-    return bookings
+    const where = {
+      AND: [
+        { userId },
+        query.search
+          ? {
+              OR: [
+                { bookingCode: { contains: query.search, mode: "insensitive" as const } },
+                {
+                  vendor: {
+                    businessName: { contains: query.search, mode: "insensitive" as const },
+                  },
+                },
+                {
+                  service: {
+                    name: { contains: query.search, mode: "insensitive" as const },
+                  },
+                },
+              ],
+            }
+          : {},
+        query.bookingStatus ? { status: query.bookingStatus } : {},
+        query.paymentStatus ? { paymentStatus: query.paymentStatus } : {},
+        query.eventDateFrom || query.eventDateTo
+          ? {
+              eventDate: {
+                ...(query.eventDateFrom ? { gte: query.eventDateFrom } : {}),
+                ...(query.eventDateTo ? { lte: query.eventDateTo } : {}),
+              },
+            }
+          : {},
+      ],
+    };
+
+    const orderBy =
+      query.sort === "oldest"
+        ? [{ createdAt: "asc" as const }]
+        : query.sort === "event-date-nearest"
+          ? [{ eventDate: "asc" as const }, { createdAt: "desc" as const }]
+          : [{ createdAt: "desc" as const }];
+
+    const [bookings, totalItems] = await prisma.$transaction([
+      prisma.booking.findMany({
+        where,
+        take: limit,
+        skip,
+        orderBy,
+        include: {
+          vendor: {
+            select: {
+              id: true,
+              businessName: true,
+              city: true,
+              province: true,
+              coverImageUrl: true,
+              logoUrl: true,
+            },
+          },
+          service: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+            },
+          },
+          paymentTerms: {
+            select: {
+              amount: true,
+              status: true,
+            },
+          },
+        },
+      }),
+      prisma.booking.count({ where }),
+    ]);
+
+    const items = bookings
       .map((booking) => mapBookingListItem(booking))
       .filter((booking): booking is UserBookingListItemDTO => Boolean(booking));
+
+    return {
+      items,
+      page,
+      pageSize: limit,
+      totalItems,
+      totalPages: Math.max(1, Math.ceil(totalItems / limit)),
+    };
+  }
+
+  async findTimelineByBookingIdForUser(
+    bookingId: string,
+    userId: string
+  ): Promise<UserBookingTimelineItemDTO[] | null> {
+    const booking = await this.findDetailByIdForUser(bookingId, userId);
+    return booking?.timeline ?? null;
   }
 
   async create(
@@ -482,40 +1050,7 @@ export class PrismaBookingRepository implements BookingRepository {
           where: {
             id: bookingId,
           },
-          include: {
-            vendor: {
-              select: {
-                id: true,
-                businessName: true,
-                city: true,
-                province: true,
-                coverImageUrl: true,
-                logoUrl: true,
-              },
-            },
-            service: {
-              select: {
-                id: true,
-                vendorId: true,
-                name: true,
-                description: true,
-                price: true,
-                isActive: true,
-              },
-            },
-            statusHistory: {
-              orderBy: {
-                createdAt: "asc",
-              },
-              include: {
-                changedBy: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
+          include: bookingDetailInclude,
         });
 
         const mapped = mapBookingDetail(booking);

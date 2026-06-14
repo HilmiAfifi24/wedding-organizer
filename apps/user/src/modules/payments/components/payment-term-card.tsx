@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookingStatus } from "@wo/shared-types";
 import { Badge, Button, Card, CardContent } from "@wo/ui-components";
 
 import type { UserPaymentTermItemDTO } from "../types";
@@ -10,14 +11,21 @@ import {
   getTermStatusBadgeClassName,
 } from "../constants";
 
-const canUploadForTerm = (status: UserPaymentTermItemDTO["status"]) =>
-  status === "UNPAID" || status === "REJECTED";
+const canUploadForTerm = (
+  bookingStatus: BookingStatus,
+  status: UserPaymentTermItemDTO["status"]
+) =>
+  (bookingStatus === BookingStatus.PENDING_PAYMENT ||
+    bookingStatus === BookingStatus.CONFIRMED) &&
+  (status === "UNPAID" || status === "REJECTED");
 
 export function PaymentTermCard({
   bookingId,
+  bookingStatus,
   term,
 }: {
   bookingId: string;
+  bookingStatus: BookingStatus;
   term: UserPaymentTermItemDTO;
 }) {
   return (
@@ -56,7 +64,7 @@ export function PaymentTermCard({
         )}
 
         <div className="flex flex-wrap gap-3">
-          {canUploadForTerm(term.status) ? (
+          {canUploadForTerm(bookingStatus, term.status) ? (
             <Button asChild className="h-10 rounded-2xl bg-rose-600 text-white hover:bg-rose-700">
               <Link href={`/bookings/${bookingId}/payments/upload?termId=${term.id}`}>
                 {term.status === "REJECTED" ? "Upload ulang" : "Upload bukti"}
