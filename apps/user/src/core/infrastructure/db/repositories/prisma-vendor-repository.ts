@@ -8,7 +8,7 @@ import {
   VendorDTO,
 } from "@wo/shared-types";
 
-import type { VendorRepository } from "../../domain/repositories";
+import type { VendorRepository } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
 const mapStatus = (status: string): VendorStatus => {

@@ -1,64 +1,75 @@
-import Image from "next/image";
+import Link from "next/link";
+import { UserStatus } from "@wo/shared-types";
+import { Button, Card, CardContent } from "@wo/ui-components";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+import { getCurrentUserSession } from "@/modules/auth/services/current-user-session";
+import { USER_AUTH_ROUTES } from "@/modules/auth/constants/routes";
+
+export default async function Home() {
+  const session = await getCurrentUserSession();
+
+  if (session?.status === UserStatus.SUSPENDED) {
+    redirect(USER_AUTH_ROUTES.suspended);
+  }
+
+  if (session?.status === UserStatus.ACTIVE) {
+    redirect(USER_AUTH_ROUTES.dashboard);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(244,114,182,0.18),_transparent_26%),linear-gradient(160deg,_#fff7ed_0%,_#fff1f2_48%,_#ffffff_100%)]">
+      <main className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-8 px-4 py-10 lg:px-8">
+        <div className="space-y-5">
+          <p className="font-mono text-xs uppercase tracking-[0.35em] text-rose-500">
+            Wedding Organizer User App
+          </p>
+          <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl">
+            Cari vendor, kelola booking, dan pantau pembayaran pernikahan Anda dalam satu alur.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="max-w-2xl text-base leading-7 text-slate-600">
+            Portal customer ini dirancang untuk membantu Anda bergerak cepat dari tahap eksplorasi vendor hingga review pasca acara.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button asChild variant="outline" className="h-11 rounded-full border-slate-300 px-6">
+            <Link href={USER_AUTH_ROUTES.vendors}>Lihat vendor approved</Link>
+          </Button>
+          <Button asChild className="h-11 rounded-full bg-rose-600 px-6 text-white hover:bg-rose-700">
+            <Link href={USER_AUTH_ROUTES.register}>Mulai sebagai customer</Link>
+          </Button>
+          <Button asChild variant="outline" className="h-11 rounded-full border-slate-300 px-6">
+            <Link href={USER_AUTH_ROUTES.login}>Saya sudah punya akun</Link>
+          </Button>
         </div>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          <Card className="rounded-[28px] border-white/80 bg-white/85 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur">
+            <CardContent className="space-y-2 py-6">
+              <h2 className="text-lg font-semibold text-slate-950">Temukan vendor</h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Jelajahi layanan vendor favorit dengan pengalaman browsing yang lebih tertata.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="rounded-[28px] border-white/80 bg-white/85 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur">
+            <CardContent className="space-y-2 py-6">
+              <h2 className="text-lg font-semibold text-slate-950">Pantau booking</h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Setiap booking, pembayaran, dan pembaruan status tercatat jelas dalam akun Anda.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="rounded-[28px] border-white/80 bg-white/85 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur">
+            <CardContent className="space-y-2 py-6">
+              <h2 className="text-lg font-semibold text-slate-950">Tinggalkan review</h2>
+              <p className="text-sm leading-6 text-slate-600">
+                Setelah acara selesai, Anda bisa membantu calon pasangan lain lewat review yang jujur.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
       </main>
     </div>
   );

@@ -1,8 +1,7 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "database";
-import bcrypt from "bcryptjs";
+import { createUserAuthUseCases } from "@/core/infrastructure/http/user-auth-factory";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -18,31 +17,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const email = credentials.email as string;
-        const password = credentials.password as string;
+        const email = String(credentials.email);
+        const password = String(credentials.password);
+        const { authenticateUserUseCase } = createUserAuthUseCases();
+        const result = await authenticateUserUseCase.execute(email, password);
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
-        if (!user || !user.passwordHash) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        if (user.role !== "USER") {
+        if (!result.success) {
           return null;
         }
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
+          id: result.session.userId,
+          email: result.session.email,
+          name: result.session.fullName,
+          phoneNumber: result.session.phoneNumber,
+          role: result.session.role,
+          status: result.session.status,
         };
       },
     }),

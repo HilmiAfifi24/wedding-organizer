@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CreateReviewInput, ListOptions, ReviewDTO, ReviewStatus } from "@wo/shared-types";
 
-import type { ReviewRepository } from "../../domain/repositories";
+import type { ReviewRepository } from "../../../domain/repositories";
 import { prisma } from "../prisma";
 
 const mapReview = (

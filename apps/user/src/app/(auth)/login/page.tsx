@@ -1,18 +1,22 @@
-import React from "react";
 import { LoginForm } from "@/modules/auth/components/login-form";
+import { AuthHero } from "@/modules/auth/components/auth-hero";
+import { requireUserRouteAccess } from "@/modules/auth/services/require-user-route-access";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  await requireUserRouteAccess("auth");
+
   return (
-    <div className="flex min-h-screen flex-1 flex-col items-center justify-center p-6 bg-gradient-to-br from-pink-50 via-rose-50 to-amber-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="mb-4 text-center animate-fade-in">
-        <h2 className="text-3xl font-extrabold text-pink-600 tracking-tight dark:text-pink-400">
-          Wedding Organizer
-        </h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Portal Client
-        </p>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,113,133,0.18),_transparent_28%),linear-gradient(160deg,_#fff7ed_0%,_#fff1f2_55%,_#ffffff_100%)]">
+      <div className="mx-auto grid min-h-screen max-w-6xl gap-10 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-8">
+        <AuthHero
+          eyebrow="User Portal"
+          title="Masuk untuk mengelola seluruh perjalanan booking pernikahan Anda."
+          description="Lihat vendor favorit, pantau pembayaran, dan pastikan semua persiapan tetap on track dari satu dashboard."
+        />
+        <div className="flex justify-center lg:justify-end">
+          <LoginForm />
+        </div>
       </div>
-      <LoginForm />
     </div>
   );
 }
