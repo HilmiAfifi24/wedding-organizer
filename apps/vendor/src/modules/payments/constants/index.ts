@@ -43,7 +43,8 @@ export const getBookingStatusBadgeVariant = (status: BookingStatus) => {
 export const getAvailablePaymentActions = (paymentProof: VendorPaymentDetailDTO) => {
   if (
     paymentProof.paymentProofStatus === PaymentProofStatus.PENDING &&
-    paymentProof.booking.status === BookingStatus.PENDING_PAYMENT
+    (paymentProof.booking.status === BookingStatus.PENDING_PAYMENT ||
+      paymentProof.booking.status === BookingStatus.CONFIRMED)
   ) {
     return [
       {

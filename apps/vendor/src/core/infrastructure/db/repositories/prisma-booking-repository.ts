@@ -38,8 +38,8 @@ export class PrismaBookingRepository implements BookingRepository {
   }
 
   async create(data: CreateBookingInput): Promise<BookingDTO> {
-    const booking = await prisma.booking.create({ data });
-    return booking as unknown as BookingDTO;
+    void data;
+    throw new Error("Direct booking creation is not supported in Vendor App");
   }
 
   async updateStatus(id: string, data: UpdateBookingStatusInput): Promise<BookingDTO> {

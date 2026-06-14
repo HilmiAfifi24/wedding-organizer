@@ -19,7 +19,14 @@ export async function POST(request: Request) {
     const { registerVendorUseCase } = createVendorAuthUseCases();
     const data = await registerVendorUseCase.execute(parsed.data);
 
-    return successResponse(data, 201, "Vendor registered successfully");
+    return successResponse(
+      {
+        userId: data.userId,
+        vendorId: data.vendorId,
+      },
+      201,
+      "Vendor registered successfully"
+    );
   } catch (error) {
     return handleApiError(error);
   }

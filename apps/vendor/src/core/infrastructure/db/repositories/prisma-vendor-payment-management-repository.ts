@@ -7,7 +7,10 @@ import type {
   CreateAuditLogInput,
   PaymentProofStatus,
   PaymentProofStatusHistoryDTO,
+  PaymentTermStatus,
+  PaymentType,
 } from "@wo/shared-types";
+import { PaymentStatus } from "@wo/shared-types";
 
 import type {
   ParsedVendorPaymentListQuery,
@@ -22,6 +25,8 @@ import { prisma } from "../prisma";
 type PrismaPaymentProofListRecord = {
   id: string;
   bookingId: string;
+  paymentTermId: string;
+  amount: number;
   fileUrl: string;
   note: string | null;
   status: string;
@@ -29,10 +34,17 @@ type PrismaPaymentProofListRecord = {
   rejectedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  paymentTerm: {
+    type: string;
+    status: string;
+    sequence: number;
+  };
   booking: {
     id: string;
     bookedAt: Date;
     status: string;
+    paymentStatus: string;
+    totalAmount: number;
     userId: string;
     vendorId: string;
     user: {
@@ -76,12 +88,31 @@ const toJsonValue = (value: unknown) => {
 
 const mapBookingStatus = (status: string) => status as BookingStatus;
 const mapPaymentStatus = (status: string) => status as PaymentProofStatus;
+const mapPaymentTermStatus = (status: string) => status as PaymentTermStatus;
+const mapPaymentType = (type: string) => type as PaymentType;
+
+const deriveBookingPaymentStatus = (termStatuses: string[]): PaymentStatus => {
+  if (termStatuses.length > 0 && termStatuses.every((status) => status === "VERIFIED")) {
+    return PaymentStatus.PAID;
+  }
+
+  if (termStatuses.some((status) => status === "VERIFIED")) {
+    return PaymentStatus.PARTIALLY_PAID;
+  }
+
+  return PaymentStatus.UNPAID;
+};
 
 const mapPaymentProofListItem = (
   paymentProof: PrismaPaymentProofListRecord
 ): VendorPaymentListItemDTO => ({
   id: paymentProof.id,
   bookingId: paymentProof.bookingId,
+  paymentTermId: paymentProof.paymentTermId,
+  paymentTermType: mapPaymentType(paymentProof.paymentTerm.type),
+  paymentTermStatus: mapPaymentTermStatus(paymentProof.paymentTerm.status),
+  paymentTermSequence: paymentProof.paymentTerm.sequence,
+  amount: paymentProof.amount,
   bookingDate: paymentProof.booking.bookedAt,
   bookingStatus: mapBookingStatus(paymentProof.booking.status),
   paymentProofStatus: mapPaymentStatus(paymentProof.status),
@@ -93,7 +124,7 @@ const mapPaymentProofListItem = (
   customerEmail: paymentProof.booking.user.email,
   customerPhone: null,
   serviceName: paymentProof.booking.service?.name ?? null,
-  totalAmount: paymentProof.booking.service?.price ?? null,
+  totalAmount: paymentProof.booking.totalAmount ?? paymentProof.booking.service?.price ?? null,
   verifiedAt: paymentProof.verifiedAt,
   rejectedAt: paymentProof.rejectedAt,
 });
@@ -184,6 +215,8 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
               id: true,
               bookedAt: true,
               status: true,
+              paymentStatus: true,
+              totalAmount: true,
               userId: true,
               vendorId: true,
               user: {
@@ -198,6 +231,13 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
                   price: true,
                 },
               },
+            },
+          },
+          paymentTerm: {
+            select: {
+              type: true,
+              status: true,
+              sequence: true,
             },
           },
         },
@@ -233,6 +273,8 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
             id: true,
             bookedAt: true,
             status: true,
+            paymentStatus: true,
+            totalAmount: true,
             notes: true,
             serviceId: true,
             vendorId: true,
@@ -259,6 +301,13 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
             },
           },
         },
+        paymentTerm: {
+          select: {
+            type: true,
+            status: true,
+            sequence: true,
+          },
+        },
         verifiedBy: {
           select: {
             name: true,
@@ -280,6 +329,8 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
       ...mapPaymentProofListItem({
         id: paymentProof.id,
         bookingId: paymentProof.bookingId,
+        paymentTermId: paymentProof.paymentTermId,
+        amount: paymentProof.amount,
         fileUrl: paymentProof.fileUrl,
         note: paymentProof.note,
         status: paymentProof.status,
@@ -287,10 +338,17 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
         rejectedAt: paymentProof.rejectedAt,
         createdAt: paymentProof.createdAt,
         updatedAt: paymentProof.updatedAt,
+        paymentTerm: {
+          type: paymentProof.paymentTerm.type,
+          status: paymentProof.paymentTerm.status,
+          sequence: paymentProof.paymentTerm.sequence,
+        },
         booking: {
           id: paymentProof.booking.id,
           bookedAt: paymentProof.booking.bookedAt,
           status: paymentProof.booking.status,
+          paymentStatus: paymentProof.booking.paymentStatus,
+          totalAmount: paymentProof.booking.totalAmount,
           userId: paymentProof.booking.userId,
           vendorId: paymentProof.booking.vendorId,
           user: {
@@ -320,7 +378,7 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
         serviceId: paymentProof.booking.serviceId,
         serviceName: paymentProof.booking.service?.name ?? null,
         packageName: null,
-        totalAmount: paymentProof.booking.service?.price ?? null,
+        totalAmount: paymentProof.booking.totalAmount ?? paymentProof.booking.service?.price ?? null,
       },
       user: {
         id: paymentProof.booking.user.id,
@@ -398,10 +456,23 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
       },
       select: {
         status: true,
+        paymentTermId: true,
+        paymentTerm: {
+          select: {
+            type: true,
+          },
+        },
         booking: {
           select: {
             id: true,
             status: true,
+            paymentStatus: true,
+            paymentTerms: {
+              select: {
+                id: true,
+                status: true,
+              },
+            },
           },
         },
       },
@@ -431,6 +502,13 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
         },
       });
 
+      await tx.paymentTerm.update({
+        where: { id: current.paymentTermId },
+        data: {
+          status: "VERIFIED",
+        },
+      });
+
       await tx.paymentProofStatusHistory.create({
         data: {
           paymentProofId: input.paymentProofId,
@@ -442,22 +520,32 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
         },
       });
 
+      const nextTermStatuses = current.booking.paymentTerms.map((term) =>
+        term.id === current.paymentTermId ? "VERIFIED" : term.status
+      );
+      const nextBookingPaymentStatus = deriveBookingPaymentStatus(nextTermStatuses);
+      const shouldConfirmBooking =
+        current.paymentTerm.type === "DP" && current.booking.status === "PENDING_PAYMENT";
+
       await tx.booking.update({
         where: { id: current.booking.id },
         data: {
-          status: "CONFIRMED",
+          status: shouldConfirmBooking ? "CONFIRMED" : undefined,
+          paymentStatus: nextBookingPaymentStatus,
         },
       });
 
-      await tx.bookingStatusHistory.create({
-        data: {
-          bookingId: current.booking.id,
-          previousStatus: current.booking.status,
-          newStatus: "CONFIRMED",
-          changedById: input.actorId,
-          note: verificationNote,
-        },
-      });
+      if (shouldConfirmBooking) {
+        await tx.bookingStatusHistory.create({
+          data: {
+            bookingId: current.booking.id,
+            previousStatus: current.booking.status,
+            newStatus: "CONFIRMED",
+            changedById: input.actorId,
+            note: verificationNote,
+          },
+        });
+      }
     });
 
     const paymentProof = await this.getPaymentProofById(input.vendorId, input.paymentProofId);
@@ -488,10 +576,17 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
       },
       select: {
         status: true,
+        paymentTermId: true,
         booking: {
           select: {
             id: true,
             status: true,
+            paymentTerms: {
+              select: {
+                id: true,
+                status: true,
+              },
+            },
           },
         },
       },
@@ -517,6 +612,13 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
         },
       });
 
+      await tx.paymentTerm.update({
+        where: { id: current.paymentTermId },
+        data: {
+          status: "REJECTED",
+        },
+      });
+
       await tx.paymentProofStatusHistory.create({
         data: {
           paymentProofId: input.paymentProofId,
@@ -525,6 +627,18 @@ export class PrismaVendorPaymentManagementRepository implements VendorPaymentMan
           changedById: input.actorId,
           note: input.rejectionReason,
           isOverride: false,
+        },
+      });
+
+      const nextTermStatuses = current.booking.paymentTerms.map((term) =>
+        term.id === current.paymentTermId ? "REJECTED" : term.status
+      );
+      const nextBookingPaymentStatus = deriveBookingPaymentStatus(nextTermStatuses);
+
+      await tx.booking.update({
+        where: { id: current.booking.id },
+        data: {
+          paymentStatus: nextBookingPaymentStatus,
         },
       });
     });

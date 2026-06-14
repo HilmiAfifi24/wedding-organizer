@@ -10,8 +10,11 @@ import type {
   CreateAuditLogInput,
   PaymentProofStatus,
   PaymentProofStatusHistoryDTO,
+  PaymentTermStatus,
+  PaymentType,
   Role,
 } from "@wo/shared-types";
+import { PaymentStatus } from "@wo/shared-types";
 
 import { sanitizeAuditValue } from "@/core/domain/entities/audit-log-dashboard";
 import {
@@ -26,6 +29,8 @@ import { prisma } from "../prisma";
 type PrismaPaymentProofListRecord = {
   id: string;
   bookingId: string;
+  paymentTermId: string;
+  amount: number;
   fileUrl: string;
   status: string;
   verifiedAt: Date | null;
@@ -33,9 +38,15 @@ type PrismaPaymentProofListRecord = {
   overriddenAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  paymentTerm: {
+    type: string;
+    status: string;
+    sequence: number;
+  };
   booking: {
     id: string;
     status: string;
+    paymentStatus: string;
     userId: string;
     vendorId: string;
     user: {
@@ -51,12 +62,31 @@ type PrismaPaymentProofListRecord = {
 
 const mapBookingStatus = (status: string) => status as BookingStatus;
 const mapPaymentStatus = (status: string) => mapPrismaPaymentProofStatusToDto(status);
+const mapPaymentType = (type: string) => type as PaymentType;
+const mapPaymentTermStatus = (status: string) => status as PaymentTermStatus;
+
+const deriveBookingPaymentStatus = (termStatuses: string[]): PaymentStatus => {
+  if (termStatuses.length > 0 && termStatuses.every((status) => status === "VERIFIED")) {
+    return PaymentStatus.PAID;
+  }
+
+  if (termStatuses.some((status) => status === "VERIFIED")) {
+    return PaymentStatus.PARTIALLY_PAID;
+  }
+
+  return PaymentStatus.UNPAID;
+};
 
 const mapPaymentProofListItem = (
   paymentProof: PrismaPaymentProofListRecord
 ): AdminPaymentProofListItemDTO => ({
   id: paymentProof.id,
   bookingId: paymentProof.bookingId,
+  paymentTermId: paymentProof.paymentTermId,
+  paymentTermType: mapPaymentType(paymentProof.paymentTerm.type),
+  paymentTermStatus: mapPaymentTermStatus(paymentProof.paymentTerm.status),
+  paymentTermSequence: paymentProof.paymentTerm.sequence,
+  amount: paymentProof.amount,
   paymentProofStatus: mapPaymentStatus(paymentProof.status),
   bookingStatus: mapBookingStatus(paymentProof.booking.status),
   fileUrl: paymentProof.fileUrl,
@@ -206,6 +236,7 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
             select: {
               id: true,
               status: true,
+              paymentStatus: true,
               userId: true,
               vendorId: true,
               user: {
@@ -220,6 +251,13 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
                   status: true,
                 },
               },
+            },
+          },
+          paymentTerm: {
+            select: {
+              type: true,
+              status: true,
+              sequence: true,
             },
           },
         },
@@ -247,6 +285,8 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
             id: true,
             bookedAt: true,
             status: true,
+            paymentStatus: true,
+            totalAmount: true,
             notes: true,
             serviceId: true,
             userId: true,
@@ -284,6 +324,13 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
             },
           },
         },
+        paymentTerm: {
+          select: {
+            type: true,
+            status: true,
+            sequence: true,
+          },
+        },
         verifiedBy: {
           select: {
             name: true,
@@ -310,6 +357,8 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
       ...mapPaymentProofListItem({
         id: paymentProof.id,
         bookingId: paymentProof.bookingId,
+        paymentTermId: paymentProof.paymentTermId,
+        amount: paymentProof.amount,
         fileUrl: paymentProof.fileUrl,
         status: paymentProof.status,
         verifiedAt: paymentProof.verifiedAt,
@@ -317,9 +366,15 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         overriddenAt: paymentProof.overriddenAt,
         createdAt: paymentProof.createdAt,
         updatedAt: paymentProof.updatedAt,
+        paymentTerm: {
+          type: paymentProof.paymentTerm.type,
+          status: paymentProof.paymentTerm.status,
+          sequence: paymentProof.paymentTerm.sequence,
+        },
         booking: {
           id: paymentProof.booking.id,
           status: paymentProof.booking.status,
+          paymentStatus: paymentProof.booking.paymentStatus,
           userId: paymentProof.booking.userId,
           vendorId: paymentProof.booking.vendorId,
           user: {
@@ -349,6 +404,7 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         notes: paymentProof.booking.notes,
         serviceId: paymentProof.booking.serviceId,
         serviceName: paymentProof.booking.service?.name ?? null,
+        totalAmount: paymentProof.booking.totalAmount ?? null,
       },
       user: {
         id: paymentProof.booking.user.id,
@@ -410,10 +466,22 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
       select: {
         id: true,
         status: true,
+        paymentTermId: true,
+        paymentTerm: {
+          select: {
+            type: true,
+          },
+        },
         booking: {
           select: {
             id: true,
             status: true,
+            paymentTerms: {
+              select: {
+                id: true,
+                status: true,
+              },
+            },
           },
         },
       },
@@ -445,6 +513,13 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         },
       });
 
+      await tx.paymentTerm.update({
+        where: { id: current.paymentTermId },
+        data: {
+          status: "VERIFIED",
+        },
+      });
+
       await tx.paymentProofStatusHistory.create({
         data: {
           paymentProofId: input.paymentProofId,
@@ -456,22 +531,32 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         },
       });
 
+      const nextTermStatuses = current.booking.paymentTerms.map((term) =>
+        term.id === current.paymentTermId ? "VERIFIED" : term.status
+      );
+      const nextBookingPaymentStatus = deriveBookingPaymentStatus(nextTermStatuses);
+      const shouldConfirmBooking =
+        current.paymentTerm.type === "DP" && current.booking.status === "PENDING_PAYMENT";
+
       await tx.booking.update({
         where: { id: current.booking.id },
         data: {
-          status: "CONFIRMED",
+          status: shouldConfirmBooking ? "CONFIRMED" : undefined,
+          paymentStatus: nextBookingPaymentStatus,
         },
       });
 
-      await tx.bookingStatusHistory.create({
-        data: {
-          bookingId: current.booking.id,
-          previousStatus: current.booking.status,
-          newStatus: "CONFIRMED",
-          changedById: input.actorId,
-          note: `Admin force verify payment: ${input.reason}`,
-        },
-      });
+      if (shouldConfirmBooking) {
+        await tx.bookingStatusHistory.create({
+          data: {
+            bookingId: current.booking.id,
+            previousStatus: current.booking.status,
+            newStatus: "CONFIRMED",
+            changedById: input.actorId,
+            note: `Admin force verify payment: ${input.reason}`,
+          },
+        });
+      }
     });
 
     const paymentProof = await this.getPaymentProofById(input.paymentProofId);
@@ -502,10 +587,17 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
       select: {
         id: true,
         status: true,
+        paymentTermId: true,
         booking: {
           select: {
             id: true,
             status: true,
+            paymentTerms: {
+              select: {
+                id: true,
+                status: true,
+              },
+            },
           },
         },
       },
@@ -534,6 +626,13 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         },
       });
 
+      await tx.paymentTerm.update({
+        where: { id: current.paymentTermId },
+        data: {
+          status: "REJECTED",
+        },
+      });
+
       await tx.paymentProofStatusHistory.create({
         data: {
           paymentProofId: input.paymentProofId,
@@ -545,24 +644,17 @@ export class PrismaPaymentMonitoringRepository implements PaymentMonitoringRepos
         },
       });
 
-      if (current.booking.status !== "PENDING_PAYMENT") {
-        await tx.booking.update({
-          where: { id: current.booking.id },
-          data: {
-            status: "PENDING_PAYMENT",
-          },
-        });
+      const nextTermStatuses = current.booking.paymentTerms.map((term) =>
+        term.id === current.paymentTermId ? "REJECTED" : term.status
+      );
+      const nextBookingPaymentStatus = deriveBookingPaymentStatus(nextTermStatuses);
 
-        await tx.bookingStatusHistory.create({
-          data: {
-            bookingId: current.booking.id,
-            previousStatus: current.booking.status,
-            newStatus: "PENDING_PAYMENT",
-            changedById: input.actorId,
-            note: `Admin force reject payment: ${input.reason}`,
-          },
-        });
-      }
+      await tx.booking.update({
+        where: { id: current.booking.id },
+        data: {
+          paymentStatus: nextBookingPaymentStatus,
+        },
+      });
     });
 
     const paymentProof = await this.getPaymentProofById(input.paymentProofId);

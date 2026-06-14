@@ -44,9 +44,9 @@ type PrismaBookingListRecord = {
   service: {
     name: string;
   } | null;
-  paymentProof: {
+  paymentProofs: Array<{
     id: string;
-  } | null;
+  }>;
 };
 
 const mapBookingStatus = (status: string) => status as BookingStatus;
@@ -114,7 +114,7 @@ const mapBookingListItem = (booking: PrismaBookingListRecord): AdminBookingListI
   vendorStatus: mapPrismaVendorStatusToDto(booking.vendor.status),
   serviceId: booking.serviceId,
   serviceName: booking.service?.name ?? null,
-  hasPaymentProof: Boolean(booking.paymentProof),
+  hasPaymentProof: booking.paymentProofs.length > 0,
 });
 
 const toJsonValue = (value: unknown) => {
@@ -242,7 +242,11 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
               name: true,
             },
           },
-          paymentProof: {
+          paymentProofs: {
+            take: 1,
+            orderBy: {
+              createdAt: "desc",
+            },
             select: {
               id: true,
             },
@@ -306,7 +310,11 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
             isActive: true,
           },
         },
-        paymentProof: {
+        paymentProofs: {
+          take: 1,
+          orderBy: {
+            createdAt: "desc",
+          },
           select: {
             id: true,
             bookingId: true,
@@ -357,11 +365,13 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
               name: booking.service.name,
             }
           : null,
-        paymentProof: booking.paymentProof
-          ? {
-              id: booking.paymentProof.id,
-            }
-          : null,
+        paymentProofs: booking.paymentProofs[0]
+          ? [
+              {
+                id: booking.paymentProofs[0].id,
+              },
+            ]
+          : [],
       }),
       user: {
         id: booking.user.id,
@@ -390,7 +400,7 @@ export class PrismaBookingManagementRepository implements BookingManagementRepos
             isActive: booking.service.isActive,
           }
         : null,
-      paymentProof: mapPaymentProof(booking.paymentProof),
+      paymentProof: mapPaymentProof(booking.paymentProofs[0]),
     };
   }
 

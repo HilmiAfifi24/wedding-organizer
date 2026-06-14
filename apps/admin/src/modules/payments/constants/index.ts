@@ -59,7 +59,10 @@ export const getAvailablePaymentActions = (paymentProof: AdminPaymentProofDetail
     description: string;
   }> = [];
 
-  if (paymentProof.booking.status === BookingStatus.PENDING_PAYMENT) {
+  if (
+    paymentProof.booking.status === BookingStatus.PENDING_PAYMENT ||
+    paymentProof.booking.status === BookingStatus.CONFIRMED
+  ) {
     if (paymentProof.paymentProofStatus !== PaymentProofStatus.VERIFIED) {
       actions.push({
         type: "force-verify",

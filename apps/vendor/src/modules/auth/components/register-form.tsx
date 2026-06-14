@@ -5,7 +5,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { MediaType, type CategoryDTO, type VendorRegistrationInput } from "@wo/shared-types";
 import {
   Button,
@@ -83,7 +82,6 @@ export function RegisterForm({ categories }: RegisterFormProps) {
     clearErrors,
     formState: { errors },
   } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
     defaultValues: {
       ownerName: "",
       email: "",
@@ -209,18 +207,36 @@ export function RegisterForm({ categories }: RegisterFormProps) {
     setIsSubmitting(true);
     setFormError(null);
     setSuccess(null);
+    clearErrors();
 
     try {
+      const parsed = registerSchema.safeParse(data);
+      if (!parsed.success) {
+        for (const issue of parsed.error.issues) {
+          const fieldName = issue.path.join(".");
+          if (!fieldName) {
+            continue;
+          }
+
+          setFieldError(fieldName as Path<RegisterInput>, {
+            type: "manual",
+            message: issue.message,
+          });
+        }
+
+        return;
+      }
+
       const payload: VendorRegistrationInput = {
-        ...data,
+        ...parsed.data,
         initialService: {
-          ...data.initialService,
-          description: data.initialService.description?.trim() || undefined,
+          ...parsed.data.initialService,
+          description: parsed.data.initialService.description?.trim() || undefined,
         },
         initialPortfolio: {
-          ...data.initialPortfolio,
-          title: data.initialPortfolio.title?.trim() || undefined,
-          description: data.initialPortfolio.description?.trim() || undefined,
+          ...parsed.data.initialPortfolio,
+          title: parsed.data.initialPortfolio.title?.trim() || undefined,
+          description: parsed.data.initialPortfolio.description?.trim() || undefined,
         },
       };
 

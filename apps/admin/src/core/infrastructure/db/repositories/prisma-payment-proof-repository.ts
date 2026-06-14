@@ -11,10 +11,13 @@ import type { PaymentProofRepository } from "@/core/domain/repositories";
 import { prisma } from "../prisma";
 
 const mapPaymentProof = (
-  paymentProof:
+      paymentProof:
     | {
         id: string;
         bookingId: string;
+        paymentTermId: string;
+        uploadedById: string;
+        amount: number;
         fileUrl: string;
         note: string | null;
         status: string;
@@ -44,7 +47,10 @@ const mapPaymentProof = (
 
 export class PrismaPaymentProofRepository implements PaymentProofRepository {
   async findByBookingId(bookingId: string): Promise<PaymentProofDTO | null> {
-    const paymentProof = await prisma.paymentProof.findUnique({ where: { bookingId } });
+    const paymentProof = await prisma.paymentProof.findFirst({
+      where: { bookingId },
+      orderBy: { createdAt: "desc" },
+    });
     return mapPaymentProof(paymentProof);
   }
 
@@ -83,6 +89,19 @@ export class PrismaPaymentProofRepository implements PaymentProofRepository {
           changedById: data.verifiedById,
           note: data.verificationNote ?? null,
           isOverride: false,
+        },
+      });
+
+      await tx.paymentTerm.updateMany({
+        where: {
+          paymentProofs: {
+            some: {
+              id,
+            },
+          },
+        },
+        data: {
+          status: "VERIFIED",
         },
       });
 

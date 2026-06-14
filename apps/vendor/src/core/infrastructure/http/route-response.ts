@@ -53,6 +53,31 @@ export const handleApiError = (error: unknown) => {
     if (error.message.toLowerCase().includes("not found")) {
       return errorResponse(404, error.message);
     }
+
+    if (
+      error.message.includes("tidak ditemukan") ||
+      error.message.toLowerCase().includes("not found")
+    ) {
+      return errorResponse(404, error.message);
+    }
+
+    if (
+      error.message.includes("sudah terdaftar") ||
+      error.message.includes("sudah digunakan") ||
+      error.message.toLowerCase().includes("already exists")
+    ) {
+      return errorResponse(409, error.message);
+    }
+
+    if (
+      error.message.includes("tidak valid") ||
+      error.message.includes("wajib") ||
+      error.message.includes("minimal") ||
+      error.message.includes("maksimal") ||
+      error.message.toLowerCase().startsWith("invalid")
+    ) {
+      return errorResponse(400, error.message);
+    }
   }
 
   if (hasCode(error)) {
@@ -63,6 +88,13 @@ export const handleApiError = (error: unknown) => {
     if (error.code === "P2025") {
       return errorResponse(404, "Data not found", error);
     }
+  }
+
+  if (error instanceof Error && process.env.NODE_ENV !== "production") {
+    return errorResponse(500, error.message, {
+      name: error.name,
+      stack: error.stack,
+    });
   }
 
   return errorResponse(500, "Internal server error", error);

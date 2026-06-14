@@ -39,9 +39,9 @@ type PrismaBookingListRecord = {
   service: {
     name: string;
   } | null;
-  paymentProof: {
+  paymentProofs: Array<{
     id: string;
-  } | null;
+  }>;
 };
 
 const mapBookingStatus = (status: string) => status as BookingStatus;
@@ -109,7 +109,7 @@ const mapBookingListItem = (booking: PrismaBookingListRecord): AdminBookingListI
   vendorStatus: mapPrismaVendorStatusToDto(booking.vendor.status),
   serviceId: booking.serviceId,
   serviceName: booking.service?.name ?? null,
-  hasPaymentProof: Boolean(booking.paymentProof),
+  hasPaymentProof: booking.paymentProofs.length > 0,
 });
 
 export class PrismaVendorBookingManagementRepository implements VendorBookingManagementRepository {
@@ -186,7 +186,11 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
               name: true,
             },
           },
-          paymentProof: {
+          paymentProofs: {
+            take: 1,
+            orderBy: {
+              createdAt: "desc",
+            },
             select: {
               id: true,
             },
@@ -253,7 +257,11 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
             isActive: true,
           },
         },
-        paymentProof: {
+        paymentProofs: {
+          take: 1,
+          orderBy: {
+            createdAt: "desc",
+          },
           select: {
             id: true,
             bookingId: true,
@@ -304,11 +312,13 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
               name: booking.service.name,
             }
           : null,
-        paymentProof: booking.paymentProof
-          ? {
-              id: booking.paymentProof.id,
-            }
-          : null,
+        paymentProofs: booking.paymentProofs[0]
+          ? [
+              {
+                id: booking.paymentProofs[0].id,
+              },
+            ]
+          : [],
       }),
       user: {
         id: booking.user.id,
@@ -337,7 +347,7 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
             isActive: booking.service.isActive,
           }
         : null,
-      paymentProof: mapPaymentProof(booking.paymentProof),
+      paymentProof: mapPaymentProof(booking.paymentProofs[0]),
     };
   }
 
@@ -397,7 +407,11 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
         },
         select: {
           status: true,
-          paymentProof: {
+          paymentProofs: {
+            take: 1,
+            orderBy: {
+              createdAt: "desc",
+            },
             select: {
               id: true,
               status: true,
@@ -411,13 +425,15 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
       }
 
       if (input.nextStatus === "CONFIRMED") {
-        if (!current.paymentProof) {
+        const latestPaymentProof = current.paymentProofs[0];
+
+        if (!latestPaymentProof) {
           throw new Error("Payment proof is required before confirming booking");
         }
 
-        if (current.paymentProof.status !== "VERIFIED") {
+        if (latestPaymentProof.status !== "VERIFIED") {
           await tx.paymentProof.update({
-            where: { id: current.paymentProof.id },
+            where: { id: latestPaymentProof.id },
             data: {
               status: "VERIFIED",
               verifiedById: input.actorId,
@@ -431,8 +447,8 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
 
           await tx.paymentProofStatusHistory.create({
             data: {
-              paymentProofId: current.paymentProof.id,
-              previousStatus: current.paymentProof.status,
+              paymentProofId: latestPaymentProof.id,
+              previousStatus: latestPaymentProof.status,
               newStatus: "VERIFIED",
               changedById: input.actorId,
               note: input.note?.trim() || "Payment verified by vendor",

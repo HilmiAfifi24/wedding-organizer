@@ -134,8 +134,13 @@ export class VerifyVendorPaymentProofUseCase {
       throw new Error("Only pending payment proof can be verified");
     }
 
-    if (before.bookingStatus !== BookingStatus.PENDING_PAYMENT) {
-      throw new Error("Payment verification is only allowed when booking status is PENDING_PAYMENT");
+    if (
+      before.bookingStatus !== BookingStatus.PENDING_PAYMENT &&
+      before.bookingStatus !== BookingStatus.CONFIRMED
+    ) {
+      throw new Error(
+        "Payment verification is only allowed when booking status is PENDING_PAYMENT or CONFIRMED"
+      );
     }
 
     const result = await this.repository.verifyPaymentProof({
@@ -197,8 +202,13 @@ export class RejectVendorPaymentProofUseCase {
       throw new Error("Only pending payment proof can be rejected");
     }
 
-    if (before.bookingStatus !== BookingStatus.PENDING_PAYMENT) {
-      throw new Error("Payment rejection is only allowed when booking status is PENDING_PAYMENT");
+    if (
+      before.bookingStatus !== BookingStatus.PENDING_PAYMENT &&
+      before.bookingStatus !== BookingStatus.CONFIRMED
+    ) {
+      throw new Error(
+        "Payment rejection is only allowed when booking status is PENDING_PAYMENT or CONFIRMED"
+      );
     }
 
     const result = await this.repository.rejectPaymentProof({

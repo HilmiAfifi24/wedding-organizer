@@ -45,8 +45,8 @@ export class PrismaBookingRepository implements BookingRepository {
   }
 
   async create(data: CreateBookingInput): Promise<BookingDTO> {
-    const booking = await prisma.booking.create({ data });
-    return mapBooking(booking);
+    void data;
+    throw new Error("Direct booking creation is not supported in Admin App");
   }
 
   async updateStatus(id: string, data: UpdateBookingStatusInput): Promise<BookingDTO> {

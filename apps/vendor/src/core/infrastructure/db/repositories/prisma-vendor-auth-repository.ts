@@ -24,12 +24,44 @@ import type {
 
 import { prisma } from "../prisma";
 
+const dataUrlPattern = /^data:[a-z]+\/[a-z0-9.+-]+(?:;[a-z0-9=-]+)*,.*$/i;
+
+const sanitizeAuditValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeAuditValue(item));
+  }
+
+  if (typeof value === "string") {
+    if (dataUrlPattern.test(value)) {
+      const [header] = value.split(",", 1);
+      return `${header},[omitted]`;
+    }
+
+    if (value.length > 4000) {
+      return `${value.slice(0, 4000)}...[truncated]`;
+    }
+
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, currentValue]) => [
+        key,
+        sanitizeAuditValue(currentValue),
+      ])
+    );
+  }
+
+  return value;
+};
+
 const toJsonValue = (value: unknown) => {
   if (value === undefined) {
     return undefined;
   }
 
-  return JSON.parse(JSON.stringify(value));
+  return JSON.parse(JSON.stringify(sanitizeAuditValue(value)));
 };
 
 type VendorSessionRecord = {

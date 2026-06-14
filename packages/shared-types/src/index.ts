@@ -13,6 +13,18 @@ export enum BookingStatus {
   CANCELLED = "CANCELLED",
 }
 
+export enum PaymentStatus {
+  UNPAID = "UNPAID",
+  PARTIALLY_PAID = "PARTIALLY_PAID",
+  PAID = "PAID",
+}
+
+export enum PaymentType {
+  DP = "DP",
+  INSTALLMENT = "INSTALLMENT",
+  FINAL_PAYMENT = "FINAL_PAYMENT",
+}
+
 export enum MediaType {
   IMAGE = "IMAGE",
   VIDEO = "VIDEO",
@@ -20,6 +32,13 @@ export enum MediaType {
 
 export enum PaymentProofStatus {
   PENDING = "PENDING",
+  VERIFIED = "VERIFIED",
+  REJECTED = "REJECTED",
+}
+
+export enum PaymentTermStatus {
+  UNPAID = "UNPAID",
+  PENDING_VERIFICATION = "PENDING_VERIFICATION",
   VERIFIED = "VERIFIED",
   REJECTED = "REJECTED",
 }
@@ -42,6 +61,8 @@ export enum AuditModule {
   VENDOR_PROFILE = "VENDOR_PROFILE",
   VENDOR_PAYMENTS = "VENDOR_PAYMENTS",
   BOOKING_MANAGEMENT = "BOOKING_MANAGEMENT",
+  USER_BOOKINGS = "USER_BOOKINGS",
+  USER_PAYMENTS = "USER_PAYMENTS",
   PAYMENT_MONITORING = "PAYMENT_MONITORING",
   REVIEW_MODERATION = "REVIEW_MODERATION",
 }
@@ -71,6 +92,7 @@ export const INDONESIAN_PHONE_REGEX = /^(\+?62|0)\d{8,13}$/;
 export interface UserDTO {
   id: string;
   email: string;
+  phoneNumber?: string | null;
   name?: string | null;
   passwordHash?: string | null;
   role: Role;
@@ -350,6 +372,16 @@ export interface VendorSessionDTO {
   suspendedAt?: Date | null;
 }
 
+export interface UserSessionDTO {
+  userId: string;
+  email: string;
+  fullName?: string | null;
+  phoneNumber?: string | null;
+  role: Role.USER;
+  status: UserStatus;
+  suspendedAt?: Date | null;
+}
+
 export interface VendorOnboardingDTO {
   vendorId: string;
   ownerName?: string | null;
@@ -528,6 +560,9 @@ export interface AdminBookingDetailDTO extends AdminBookingListItemDTO {
 export interface PaymentProofDTO {
   id: string;
   bookingId: string;
+  paymentTermId?: string;
+  uploadedById?: string;
+  amount?: number;
   fileUrl: string;
   note?: string | null;
   status: PaymentProofStatus;
@@ -540,6 +575,18 @@ export interface PaymentProofDTO {
   overriddenById?: string | null;
   overriddenAt?: Date | null;
   overrideReason?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaymentTermDTO {
+  id: string;
+  bookingId: string;
+  type: PaymentType;
+  amount: number;
+  status: PaymentTermStatus;
+  dueDate?: Date | null;
+  sequence: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -559,6 +606,11 @@ export interface PaymentProofStatusHistoryDTO {
 export interface AdminPaymentProofListItemDTO {
   id: string;
   bookingId: string;
+  paymentTermId?: string;
+  paymentTermType?: PaymentType;
+  paymentTermStatus?: PaymentTermStatus;
+  paymentTermSequence?: number;
+  amount?: number;
   paymentProofStatus: PaymentProofStatus;
   bookingStatus: BookingStatus;
   fileUrl: string;
@@ -593,6 +645,7 @@ export interface AdminPaymentProofDetailDTO extends AdminPaymentProofListItemDTO
     notes?: string | null;
     serviceId?: string | null;
     serviceName?: string | null;
+    totalAmount?: number | null;
   };
   user: {
     id: string;
@@ -705,10 +758,19 @@ export interface ListOptions {
 
 export interface CreateUserInput {
   email: string;
+  phoneNumber?: string;
   name?: string;
   passwordHash?: string;
   role?: Role;
   accessProfileId?: string;
+}
+
+export interface UserRegistrationInput {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  confirmPassword: string;
 }
 
 export interface AccessMenuDTO {
@@ -961,6 +1023,9 @@ export interface AdminBookingsQuery {
 
 export interface CreatePaymentProofInput {
   bookingId: string;
+  paymentTermId: string;
+  uploadedById: string;
+  amount: number;
   fileUrl: string;
   note?: string;
 }

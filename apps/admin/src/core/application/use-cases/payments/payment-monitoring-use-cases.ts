@@ -157,8 +157,13 @@ export class ForceVerifyPaymentProofUseCase {
       throw new Error("Payment proof is already verified");
     }
 
-    if (before.booking.status !== BookingStatus.PENDING_PAYMENT) {
-      throw new Error("Force verify is only allowed when booking status is PENDING_PAYMENT");
+    if (
+      before.booking.status !== BookingStatus.PENDING_PAYMENT &&
+      before.booking.status !== BookingStatus.CONFIRMED
+    ) {
+      throw new Error(
+        "Force verify is only allowed when booking status is PENDING_PAYMENT or CONFIRMED"
+      );
     }
 
     const overrideReason = normalizeOverrideReason(reason);

@@ -8,6 +8,8 @@ export const AUDIT_LOG_MODULE_FILTER_OPTIONS = [
   { label: "Vendor Profile", value: AuditModule.VENDOR_PROFILE },
   { label: "Vendor Payments", value: AuditModule.VENDOR_PAYMENTS },
   { label: "Booking Management", value: AuditModule.BOOKING_MANAGEMENT },
+  { label: "User Bookings", value: AuditModule.USER_BOOKINGS },
+  { label: "User Payments", value: AuditModule.USER_PAYMENTS },
   { label: "Payment Monitoring", value: AuditModule.PAYMENT_MONITORING },
   { label: "Review Moderation", value: AuditModule.REVIEW_MODERATION },
 ] as const;
@@ -18,6 +20,8 @@ const moduleLabels: Record<AuditModule, string> = {
   [AuditModule.VENDOR_PROFILE]: "Vendor Profile",
   [AuditModule.VENDOR_PAYMENTS]: "Vendor Payments",
   [AuditModule.BOOKING_MANAGEMENT]: "Booking Management",
+  [AuditModule.USER_BOOKINGS]: "User Bookings",
+  [AuditModule.USER_PAYMENTS]: "User Payments",
   [AuditModule.PAYMENT_MONITORING]: "Payment Monitoring",
   [AuditModule.REVIEW_MODERATION]: "Review Moderation",
 };
@@ -35,6 +39,10 @@ export const getAuditModuleBadgeVariant = (module: AuditModule): NonNullable<Bad
     case AuditModule.VENDOR_PAYMENTS:
       return "warning";
     case AuditModule.BOOKING_MANAGEMENT:
+      return "success";
+    case AuditModule.USER_BOOKINGS:
+      return "success";
+    case AuditModule.USER_PAYMENTS:
       return "success";
     case AuditModule.PAYMENT_MONITORING:
       return "warning";

@@ -3,12 +3,19 @@ import type {
   PaginatedResult,
   PaymentProofStatus,
   PaymentProofStatusHistoryDTO,
+  PaymentTermStatus,
+  PaymentType,
   VendorStatus,
 } from "@wo/shared-types";
 
 export interface VendorPaymentListItemDTO {
   id: string;
   bookingId: string;
+  paymentTermId?: string;
+  paymentTermType?: PaymentType;
+  paymentTermStatus?: PaymentTermStatus;
+  paymentTermSequence?: number;
+  amount?: number | null;
   bookingDate: Date;
   bookingStatus: BookingStatus;
   paymentProofStatus: PaymentProofStatus;

@@ -94,7 +94,9 @@ export class RegisterVendorUseCase {
         },
         initialPortfolio: {
           mediaType: input.initialPortfolio.mediaType,
-          mediaUrl: input.initialPortfolio.mediaUrl,
+          mediaUrlKind: input.initialPortfolio.mediaUrl.trim().startsWith("data:")
+            ? "inline-data-url"
+            : "external-url",
         },
       },
     });
