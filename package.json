@@ -7,7 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo run dev --filter=admin --filter=user --filter=vendor",
+    "dev:admin": "npm run dev --workspace=admin",
+    "dev:user": "npm run dev --workspace=user",
+    "dev:vendor": "npm run dev --workspace=vendor",
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",

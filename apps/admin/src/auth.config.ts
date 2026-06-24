@@ -1,9 +1,40 @@
 import type { NextAuthConfig } from "next-auth";
 
+const isSecureCookie = process.env.NODE_ENV === "production";
+
 export const authConfig = {
   providers: [], // Will be populated in auth.ts
+  trustHost: true,
   session: {
     strategy: "jwt",
+  },
+  cookies: {
+    sessionToken: {
+      name: "admin-authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isSecureCookie,
+      },
+    },
+    callbackUrl: {
+      name: "admin-authjs.callback-url",
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: isSecureCookie,
+      },
+    },
+    csrfToken: {
+      name: "admin-authjs.csrf-token",
+      options: {
+        httpOnly: false,
+        sameSite: "lax",
+        path: "/",
+        secure: isSecureCookie,
+      },
+    },
   },
   pages: {
     signIn: "/login",

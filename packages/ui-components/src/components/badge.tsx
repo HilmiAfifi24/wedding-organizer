@@ -8,7 +8,7 @@ export type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
 
 const badgeVariants: Record<NonNullable<BadgeProps["variant"]>, string> = {
   default: "bg-primary text-primary-foreground",
-  outline: "border border-border text-foreground",
+  outline: "border border-border bg-background text-foreground",
   success: "bg-success/15 text-success",
   warning: "bg-warning/15 text-warning",
   danger: "bg-danger/15 text-danger",

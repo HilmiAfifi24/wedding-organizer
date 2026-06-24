@@ -5,10 +5,13 @@ import { cn } from "../lib/cn";
 
 const buttonVariants = {
   variant: {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-    secondary: "bg-muted text-muted-foreground hover:bg-muted/80",
-    outline: "border border-border hover:bg-muted/60",
-    ghost: "hover:bg-muted/60",
+    primary:
+      "border border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+    secondary:
+      "border border-transparent bg-muted text-foreground shadow-sm hover:bg-muted/80",
+    outline:
+      "border border-border bg-background text-foreground shadow-sm hover:bg-muted/60 hover:text-foreground",
+    ghost: "text-foreground hover:bg-muted/60 hover:text-foreground",
   },
   size: {
     sm: "h-9 px-3 text-sm",
@@ -30,7 +33,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-md font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:border-border/70 disabled:bg-muted/60 disabled:text-muted-foreground disabled:shadow-none",
           buttonVariants.variant[variant],
           buttonVariants.size[size],
           className

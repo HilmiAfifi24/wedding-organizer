@@ -14,13 +14,13 @@ export const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-border bg-transparent px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/50",
+      "flex h-10 w-full items-center justify-between rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:border-border/70 disabled:bg-muted/40 disabled:text-muted-foreground",
       className
     )}
     {...props}
   >
     {children}
-    <span aria-hidden className="text-xs text-muted-foreground">
+    <span aria-hidden className="text-xs text-foreground/70">
       v
     </span>
   </SelectPrimitive.Trigger>
@@ -36,7 +36,7 @@ export const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "z-50 min-w-40 overflow-hidden rounded-md border border-border bg-background shadow-md",
+        "z-50 min-w-40 overflow-hidden rounded-md border border-border bg-background text-foreground shadow-md",
         className
       )}
       {...props}
@@ -62,7 +62,7 @@ export const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-2 text-sm outline-none focus:bg-muted/60",
+      "relative flex cursor-default select-none items-center rounded-sm px-2 py-2 text-sm text-foreground outline-none focus:bg-muted/60",
       className
     )}
     {...props}

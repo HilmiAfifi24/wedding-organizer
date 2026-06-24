@@ -33,7 +33,7 @@ export const CategoriesFilterBar = ({
       />
 
       <select
-        className="h-10 rounded-md border border-border bg-transparent px-3 text-sm"
+        className="h-10 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-2 focus:ring-offset-background"
         value={filters.sortBy ?? "name"}
         onChange={(event) =>
           onFiltersChange({
@@ -49,7 +49,7 @@ export const CategoriesFilterBar = ({
       </select>
 
       <select
-        className="h-10 rounded-md border border-border bg-transparent px-3 text-sm"
+        className="h-10 rounded-md border border-border bg-background px-3 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-2 focus:ring-offset-background"
         value={filters.sortDirection ?? "asc"}
         onChange={(event) =>
           onFiltersChange({

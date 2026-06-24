@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from "@wo/ui-components";
@@ -14,20 +13,25 @@ import type { UserPaymentTermUploadContextDTO } from "../types";
 import { isImageFile, isPdfFile } from "../services/file-preview";
 import { useToast } from "@/shared/components/toaster";
 
+type PaymentProofUploadFormValues = Omit<PaymentProofUploadInput, "file"> & {
+  file?: File;
+};
+
 export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUploadContextDTO }) {
   const router = useRouter();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const {
     control,
     register,
     handleSubmit,
-    setValue,
+    setError: setFieldError,
+    clearErrors,
     formState: { errors },
-  } = useForm<PaymentProofUploadInput>({
-    resolver: zodResolver(paymentProofUploadSchema),
+  } = useForm<PaymentProofUploadFormValues>({
     defaultValues: {
       bookingId: context.bookingId,
       paymentTermId: context.term.id,
@@ -36,9 +40,10 @@ export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUp
     },
   });
 
-  const file = useWatch({ control, name: "file" });
   const amount = useWatch({ control, name: "amount" });
-  const previewSource = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  const previewSource = useMemo(() => {
+    return selectedFile ? URL.createObjectURL(selectedFile) : null;
+  }, [selectedFile]);
   const hasRejectedPreviousProof = context.term.status === "REJECTED";
 
   useEffect(() => {
@@ -49,12 +54,34 @@ export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUp
     };
   }, [previewSource]);
 
-  const onSubmit = async (values: PaymentProofUploadInput) => {
+  const onSubmit = async (values: PaymentProofUploadFormValues) => {
     setIsSubmitting(true);
     setError(null);
+    clearErrors();
 
     try {
-      const response = await paymentsApi.uploadProof(values);
+      const validation = paymentProofUploadSchema.safeParse({
+        ...values,
+        file: selectedFile ?? undefined,
+      });
+
+      if (!validation.success) {
+        for (const issue of validation.error.issues) {
+          const fieldName = issue.path[0];
+
+          if (fieldName === "file" || fieldName === "amount" || fieldName === "note") {
+            setFieldError(fieldName, { type: "manual", message: issue.message });
+          } else if (fieldName === "bookingId" || fieldName === "paymentTermId") {
+            setFieldError(fieldName, { type: "manual", message: issue.message });
+          } else {
+            setFieldError("note", { type: "manual", message: issue.message });
+          }
+        }
+
+        return;
+      }
+
+      const response = await paymentsApi.uploadProof(validation.data);
       toast({
         title: hasRejectedPreviousProof ? "Bukti pembayaran berhasil diunggah ulang" : "Bukti pembayaran berhasil diunggah",
         description: "Menunggu verifikasi dari vendor.",
@@ -79,12 +106,12 @@ export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUp
   };
 
   const fileLabel = useMemo(() => {
-    if (!file) {
+    if (!selectedFile) {
       return "Pilih file JPG, PNG, WEBP, atau PDF";
     }
 
-    return `${file.name} (${Math.ceil(file.size / 1024)} KB)`;
-  }, [file]);
+    return `${selectedFile.name} (${Math.ceil(selectedFile.size / 1024)} KB)`;
+  }, [selectedFile]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -192,11 +219,7 @@ export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUp
                   className="hidden"
                   onChange={(event) => {
                     const nextFile = event.target.files?.[0];
-                    if (!nextFile) {
-                      return;
-                    }
-
-                    setValue("file", nextFile, { shouldValidate: true });
+                    setSelectedFile(nextFile ?? null);
                   }}
                 />
               </label>
