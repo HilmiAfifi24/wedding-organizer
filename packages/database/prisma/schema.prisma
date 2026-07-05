@@ -211,9 +211,20 @@ model Service {
 
   vendor   Vendor    @relation(fields: [vendorId], references: [id])
   bookings Booking[]
+  adats    Adat[]
 
   @@index([vendorId])
 }
+
+model Adat {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  services  Service[]
+}
+
 
 model Booking {
   id             String        @id @default(uuid())

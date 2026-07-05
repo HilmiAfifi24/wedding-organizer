@@ -26,42 +26,42 @@ export function UserShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(249,168,212,0.22),_transparent_32%),linear-gradient(160deg,_#fff7ed_0%,_#fff1f2_48%,_#ffffff_100%)] text-slate-900">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#172554_0%,#020617_48%,#020617_100%)] text-slate-100">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <header className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(190,24,93,0.08)] backdrop-blur">
+        <header className="rounded-[28px] border border-white/10 bg-card p-5 shadow-2xl backdrop-blur">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
               <Link href={USER_AUTH_ROUTES.home} className="inline-flex items-center gap-2">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-sm font-semibold text-white">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-sm font-semibold text-white animate-pulse">
                   WO
                 </span>
                 <div>
-                  <p className="font-mono text-xs uppercase tracking-[0.28em] text-rose-500">
+                  <p className="font-mono text-xs uppercase tracking-[0.28em] text-rose-400">
                     Wedding Organizer
                   </p>
-                  <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
+                  <h1 className="text-2xl font-semibold tracking-tight text-white">
                     {title}
                   </h1>
                 </div>
               </Link>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">{description}</p>
+              <p className="max-w-2xl text-sm leading-6 text-slate-300">{description}</p>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-3xl bg-slate-950 px-4 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-white sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium">{session.fullName || "Wedding Customer"}</p>
-                <p className="text-xs text-slate-300">{session.email}</p>
+                <p className="text-xs text-slate-400">{session.email}</p>
               </div>
               <div className="flex items-center gap-3">
                 <Badge className="border-0 bg-white/12 text-white">USER</Badge>
-                <LogoutButton />
+                <LogoutButton className="border border-white/10 bg-white/5 text-slate-100 hover:bg-white/10" />
               </div>
             </div>
           </div>
 
           <nav className="mt-5 flex flex-wrap gap-2">
             {navigationItems.map((item) => (
-              <Button key={item.href} asChild variant="ghost" className="rounded-full text-slate-700">
+              <Button key={item.href} asChild variant="ghost" className="rounded-full text-slate-300 hover:bg-white/5 hover:text-white transition-all">
                 <Link href={item.href}>{item.label}</Link>
               </Button>
             ))}

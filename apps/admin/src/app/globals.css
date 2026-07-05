@@ -2,21 +2,21 @@
 @source "../../../../packages/ui-components/src/**/*.{ts,tsx}";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --muted: #f3f4f6;
-  --muted-foreground: #4b5563;
-  --border: #e5e7eb;
-  --primary: #0f172a;
-  --primary-foreground: #f8fafc;
-  --accent: #e2e8f0;
-  --accent-foreground: #0f172a;
-  --ring: #0f172a;
-  --success: #15803d;
-  --warning: #b45309;
-  --danger: #be123c;
+  --background: #020617;
+  --foreground: #f8fafc;
+  --card: rgba(2, 6, 23, 0.65);
+  --card-foreground: #f1f5f9;
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-foreground: #f1f5f9;
+  --ring: #6366f1;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
 }
 
 @theme inline {
@@ -39,24 +39,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --card: #0f172a;
-    --card-foreground: #e2e8f0;
-    --muted: #111827;
-    --muted-foreground: #9ca3af;
-    --border: #1f2937;
-    --primary: #e2e8f0;
-    --primary-foreground: #0f172a;
-    --accent: #1f2937;
-    --accent-foreground: #e2e8f0;
-    --ring: #e2e8f0;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #fb7185;
-  }
+.bg-card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 body {

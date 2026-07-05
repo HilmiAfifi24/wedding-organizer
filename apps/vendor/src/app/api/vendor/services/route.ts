@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         description: parsed.data.description?.trim() || undefined,
         price: parsed.data.price,
         isActive: parsed.data.isActive,
+        adatIds: parsed.data.adatIds,
       }
     );
 

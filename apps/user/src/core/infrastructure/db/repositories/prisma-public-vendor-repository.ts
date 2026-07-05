@@ -41,6 +41,20 @@ const buildSearchWhere = (query: PublicVendorDiscoveryQuery) => ({
     : {}),
   ...(query.categoryId ? { categoryId: query.categoryId } : {}),
   ...(query.city ? { city: { equals: query.city, mode: "insensitive" as const } } : {}),
+  ...(query.adatId
+    ? {
+        services: {
+          some: {
+            isActive: true,
+            adats: {
+              some: {
+                id: query.adatId,
+              },
+            },
+          },
+        },
+      }
+    : {}),
 });
 
 const mapCategoryOptions = (items: Array<{ id: string; name: string }>): PublicVendorFilterOption[] =>
@@ -202,7 +216,7 @@ export class PrismaPublicVendorRepository implements PublicVendorRepository {
       ...buildSearchWhere(query),
     };
 
-    const [vendors, categories, cities] = await Promise.all([
+    const [vendors, categories, cities, adats] = await Promise.all([
       prisma.vendor.findMany({
         where,
         include: {
@@ -265,6 +279,15 @@ export class PrismaPublicVendorRepository implements PublicVendorRepository {
           city: "asc",
         },
       }),
+      prisma.adat.findMany({
+        orderBy: {
+          name: "asc",
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      }),
     ]);
 
     const mapped = vendors
@@ -306,6 +329,7 @@ export class PrismaPublicVendorRepository implements PublicVendorRepository {
       filters: {
         categories: mapCategoryOptions(categories),
         cities: mapCityOptions(cities),
+        adats: adats.map((a) => ({ value: a.id, label: a.name })),
       },
     };
   }
@@ -375,6 +399,12 @@ export class PrismaPublicVendorRepository implements PublicVendorRepository {
             isActive: true,
             createdAt: true,
             updatedAt: true,
+            adats: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },

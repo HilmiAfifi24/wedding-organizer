@@ -14,16 +14,19 @@ import type { VendorDiscoveryQuery } from "../schemas/vendor-discovery";
 export function VendorsFilterBar({
   categories,
   cities,
+  adats,
   query,
 }: {
   categories: PublicVendorFilterOption[];
   cities: PublicVendorFilterOption[];
+  adats: PublicVendorFilterOption[];
   query: Partial<VendorDiscoveryQuery>;
 }) {
   const { isPending, submitFilters, resetFilters } = useVendorFilters();
   const [search, setSearch] = useState(query.search ?? "");
   const [categoryId, setCategoryId] = useState(query.categoryId ?? "");
   const [city, setCity] = useState(query.city ?? "");
+  const [adatId, setAdatId] = useState(query.adatId ?? "");
   const [priceMin, setPriceMin] = useState(
     typeof query.priceMin === "number" ? String(query.priceMin) : ""
   );
@@ -36,23 +39,23 @@ export function VendorsFilterBar({
   const [sortBy, setSortBy] = useState(query.sortBy ?? "newest");
 
   return (
-    <div className="rounded-[28px] border border-white/80 bg-white/88 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_repeat(5,minmax(0,1fr))]">
+    <div className="rounded-[28px] border border-white/10 bg-card p-5 shadow-2xl backdrop-blur">
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_repeat(6,minmax(0,1fr))]">
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari nama vendor, kategori, atau kota"
-          className="h-11 rounded-2xl border-slate-200 bg-white"
+          className="h-11 rounded-2xl border-white/10 bg-white/5 text-white placeholder-slate-400"
         />
 
         <select
           value={categoryId}
           onChange={(event) => setCategoryId(event.target.value)}
-          className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
+          className="h-11 rounded-2xl border border-white/10 bg-slate-900 px-3 text-sm text-white"
         >
-          <option value="">All Categories</option>
+          <option value="" className="bg-slate-950">All Categories</option>
           {categories.map((item) => (
-            <option key={item.value} value={item.value}>
+            <option key={item.value} value={item.value} className="bg-slate-950">
               {item.label}
             </option>
           ))}
@@ -61,11 +64,24 @@ export function VendorsFilterBar({
         <select
           value={city}
           onChange={(event) => setCity(event.target.value)}
-          className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
+          className="h-11 rounded-2xl border border-white/10 bg-slate-900 px-3 text-sm text-white"
         >
-          <option value="">All Cities</option>
+          <option value="" className="bg-slate-950">All Cities</option>
           {cities.map((item) => (
-            <option key={item.value} value={item.value}>
+            <option key={item.value} value={item.value} className="bg-slate-950">
+              {item.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={adatId}
+          onChange={(event) => setAdatId(event.target.value)}
+          className="h-11 rounded-2xl border border-white/10 bg-slate-900 px-3 text-sm text-white"
+        >
+          <option value="" className="bg-slate-950">All Cultures (Adat)</option>
+          {adats.map((item) => (
+            <option key={item.value} value={item.value} className="bg-slate-950">
               {item.label}
             </option>
           ))}
@@ -76,7 +92,7 @@ export function VendorsFilterBar({
           onChange={(event) => setPriceMin(event.target.value)}
           inputMode="numeric"
           placeholder="Min price"
-          className="h-11 rounded-2xl border-slate-200 bg-white"
+          className="h-11 rounded-2xl border-white/10 bg-white/5 text-white placeholder-slate-400"
         />
 
         <Input
@@ -84,16 +100,16 @@ export function VendorsFilterBar({
           onChange={(event) => setPriceMax(event.target.value)}
           inputMode="numeric"
           placeholder="Max price"
-          className="h-11 rounded-2xl border-slate-200 bg-white"
+          className="h-11 rounded-2xl border-white/10 bg-white/5 text-white placeholder-slate-400"
         />
 
         <select
           value={rating}
           onChange={(event) => setRating(event.target.value)}
-          className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
+          className="h-11 rounded-2xl border border-white/10 bg-slate-900 px-3 text-sm text-white"
         >
           {RATING_FILTER_OPTIONS.map((item) => (
-            <option key={item.label} value={item.value}>
+            <option key={item.label} value={item.value} className="bg-slate-950">
               {item.label}
             </option>
           ))}
@@ -102,14 +118,14 @@ export function VendorsFilterBar({
 
       <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-slate-700">Sort by</label>
+          <label className="text-sm font-medium text-slate-300">Sort by</label>
           <select
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value as VendorDiscoveryQuery["sortBy"])}
-            className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
+            className="h-11 rounded-2xl border border-white/10 bg-slate-900 px-3 text-sm text-white"
           >
             {VENDOR_SORT_OPTIONS.map((item) => (
-              <option key={item.value} value={item.value}>
+              <option key={item.value} value={item.value} className="bg-slate-950">
                 {item.label}
               </option>
             ))}
@@ -120,11 +136,12 @@ export function VendorsFilterBar({
           <Button
             type="button"
             variant="outline"
-            className="rounded-full"
+            className="rounded-full border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
             onClick={() => {
               setSearch("");
               setCategoryId("");
               setCity("");
+              setAdatId("");
               setPriceMin("");
               setPriceMax("");
               setRating("");
@@ -143,6 +160,7 @@ export function VendorsFilterBar({
                 search,
                 categoryId,
                 city,
+                adatId,
                 priceMin: priceMin ? Number(priceMin) : undefined,
                 priceMax: priceMax ? Number(priceMax) : undefined,
                 rating: rating ? Number(rating) : undefined,

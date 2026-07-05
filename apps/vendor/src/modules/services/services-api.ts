@@ -37,14 +37,14 @@ const request = async <T>(url: string, init?: RequestInit): Promise<T> => {
 
 export const vendorServicesApi = {
   list: () => request<ServiceDTO[]>("/api/vendor/services"),
-  create: (data: { name: string; description?: string; price: number; isActive?: boolean }) =>
+  create: (data: { name: string; description?: string; price: number; isActive?: boolean; adatIds?: string[] }) =>
     request<ServiceDTO>("/api/vendor/services", {
       method: "POST",
       body: JSON.stringify(data),
     }),
   update: (
     serviceId: string,
-    data: { name?: string; description?: string; price?: number; isActive?: boolean }
+    data: { name?: string; description?: string; price?: number; isActive?: boolean; adatIds?: string[] }
   ) =>
     request<ServiceDTO>(`/api/vendor/services/${serviceId}`, {
       method: "PATCH",

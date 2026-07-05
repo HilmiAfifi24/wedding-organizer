@@ -61,8 +61,8 @@ const NavigationNode = ({
           onClick={onNavigate}
           className={`flex items-center rounded-lg px-3 py-2 text-sm transition ${
             active
-              ? "bg-indigo-600 text-white shadow-lg shadow-indigo-700/30"
-              : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
+              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+              : "text-muted-foreground hover:bg-accent/60 hover:text-accent-foreground"
           }`}
           style={{ paddingLeft: `${12 + depth * 12}px` }}
         >
@@ -70,7 +70,7 @@ const NavigationNode = ({
         </Link>
       ) : (
         <p
-          className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500"
+          className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/80"
           style={{ paddingLeft: `${12 + depth * 12}px` }}
         >
           {item.title}
@@ -113,11 +113,11 @@ export function AdminLayout({ children, user, navigation }: AdminLayoutProps) {
   }, [prefetchPaths, router]);
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100">
+    <div className="flex min-h-screen bg-[radial-gradient(circle_at_top,#172554_0%,#020617_48%,#020617_100%)] text-slate-100">
       <div className="fixed left-4 top-4 z-40 lg:hidden">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="rounded-lg border border-slate-800 bg-slate-900/90 p-2 text-slate-400 backdrop-blur-md hover:text-slate-100"
+          className="rounded-lg border border-border bg-card p-2 text-muted-foreground backdrop-blur-md hover:text-foreground"
         >
           <svg
             className="h-6 w-6"
@@ -138,19 +138,19 @@ export function AdminLayout({ children, user, navigation }: AdminLayoutProps) {
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-35 flex w-72 flex-col border-r border-slate-800 bg-slate-900/95 px-6 py-6 backdrop-blur-md transition-transform duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-35 flex w-72 flex-col border-r border-border bg-card px-6 py-6 backdrop-blur-md transition-transform duration-300 lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
             <svg
-              className="h-6 w-6 text-white"
+              className="h-6 w-6 text-primary-foreground"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth="1.5"
@@ -164,8 +164,8 @@ export function AdminLayout({ children, user, navigation }: AdminLayoutProps) {
             </svg>
           </div>
           <div>
-            <h1 className="text-md font-bold tracking-tight text-slate-100">WO Platform</h1>
-            <p className="text-xs font-semibold text-indigo-400">Admin Panel</p>
+            <h1 className="text-md font-bold tracking-tight text-foreground">WO Platform</h1>
+            <p className="text-xs font-semibold text-primary">Admin Panel</p>
           </div>
         </div>
 
@@ -190,14 +190,14 @@ export function AdminLayout({ children, user, navigation }: AdminLayoutProps) {
         {user && (
           <div className="mt-auto border-t border-slate-800 pt-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-700 bg-slate-800 font-bold text-indigo-400">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-bold text-primary">
                 {user.name ? user.name[0]?.toUpperCase() : "A"}
               </div>
               <div className="overflow-hidden">
-                <p className="truncate text-sm font-semibold text-slate-200">
+                <p className="truncate text-sm font-semibold text-foreground">
                   {user.name || "Administrator"}
                 </p>
-                <p className="truncate text-xs text-slate-500">{user.email}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
               </div>
             </div>
             <LogoutButton />

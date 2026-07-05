@@ -10,6 +10,7 @@ export const createServiceSchema = z.object({
     .or(z.literal("")),
   price: z.coerce.number().int().min(0, "Harga layanan tidak valid"),
   isActive: z.boolean().optional().default(true),
+  adatIds: z.array(z.string()).optional(),
 });
 
 export const updateServiceSchema = z.object({
@@ -22,6 +23,7 @@ export const updateServiceSchema = z.object({
     .or(z.literal("")),
   price: z.coerce.number().int().min(0, "Harga layanan tidak valid").optional(),
   isActive: z.boolean().optional(),
+  adatIds: z.array(z.string()).optional(),
 });
 
 export const serviceIdParamSchema = z.object({

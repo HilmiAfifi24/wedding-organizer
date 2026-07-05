@@ -36,6 +36,13 @@ const accessMenus = [
     parentCode: null,
   },
   {
+    code: "ADAT_MANAGEMENT",
+    name: "Manajemen Adat",
+    path: "/adats",
+    sortOrder: 36,
+    parentCode: null,
+  },
+  {
     code: "VENDOR_MANAGEMENT",
     name: "Manajemen Vendor",
     path: "/vendors",
@@ -179,11 +186,23 @@ async function seedPermissions(superAdminProfileId, menus) {
   });
 }
 
+async function seedAdats() {
+  const initialAdats = ["Jawa", "Sunda", "Minang", "Modern", "Nasional", "Batak"];
+  for (const name of initialAdats) {
+    await prisma.adat.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+}
+
 async function main() {
   const superAdminProfile = await seedSuperAdminProfile();
   const menus = await seedMenus();
   const admin = await seedAdminUser(superAdminProfile.id);
   await seedPermissions(superAdminProfile.id, menus);
+  await seedAdats();
 
   console.log("Seeded admin auth + RBAC core:");
   console.log("- Email:", admin.email);

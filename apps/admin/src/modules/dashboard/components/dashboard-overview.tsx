@@ -119,10 +119,10 @@ const RangeSwitcher = ({
 const KpiGrid = ({ items }: { items: DashboardKpiSummaryDTO[] }) => (
   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
     {items.map((item) => (
-      <Card key={item.key} className="border border-slate-800 bg-slate-900/60">
+      <Card key={item.key}>
         <CardHeader className="space-y-3 pb-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-3 text-indigo-300">
+            <div className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-primary">
               <OverviewIcon kind={KPI_ICON_BY_KEY[item.key] ?? "alert"} />
             </div>
             <Button variant="ghost" size="sm" asChild>
@@ -130,12 +130,12 @@ const KpiGrid = ({ items }: { items: DashboardKpiSummaryDTO[] }) => (
             </Button>
           </div>
           <div>
-            <CardDescription className="text-slate-400">{item.title}</CardDescription>
-            <CardTitle className="mt-2 text-3xl text-slate-50">{formatCompactNumber(item.count)}</CardTitle>
+            <CardDescription>{item.title}</CardDescription>
+            <CardTitle className="mt-2 text-3xl">{formatCompactNumber(item.count)}</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground/85">
             {typeof item.trendPercentage === "number"
               ? `${item.trendPercentage > 0 ? "+" : ""}${item.trendPercentage}% vs previous period`
               : "Ringkasan operasional saat ini"}
@@ -149,10 +149,10 @@ const KpiGrid = ({ items }: { items: DashboardKpiSummaryDTO[] }) => (
 const StatusList = ({ items }: { items: DashboardStatusMetricDTO[] }) => (
   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
     {items.map((item) => (
-      <div key={item.status} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+      <div key={item.status} className="rounded-lg border border-border bg-muted/30 p-3">
         <div className="flex items-center justify-between gap-3">
           <Badge variant={getStatusTone(item.status)}>{item.label}</Badge>
-          <span className="text-lg font-semibold text-slate-100">{formatCompactNumber(item.count)}</span>
+          <span className="text-lg font-semibold text-foreground">{formatCompactNumber(item.count)}</span>
         </div>
       </div>
     ))}
@@ -194,23 +194,23 @@ const BarSummary = ({ data }: { data: DashboardStatusMetricDTO[] }) => (
 );
 
 const QuickActions = ({ items }: { items: DashboardQuickActionDTO[] }) => (
-  <Card className="border border-slate-800 bg-slate-900/60">
+  <Card>
     <CardHeader>
-      <CardTitle className="text-slate-50">Quick Actions</CardTitle>
-      <CardDescription className="text-slate-400">
+      <CardTitle>Quick Actions</CardTitle>
+      <CardDescription>
         Shortcut ke modul operasional yang paling sering dipakai admin.
       </CardDescription>
     </CardHeader>
     <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {items.length === 0 ? (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/70 px-4 py-6 text-sm text-slate-400">
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
           Tidak ada quick action yang tersedia untuk permission akun ini.
         </div>
       ) : (
         items.map((item) => (
-          <div key={item.key} className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-            <h3 className="font-semibold text-slate-100">{item.title}</h3>
-            <p className="mt-2 text-sm text-slate-400">{item.description}</p>
+          <div key={item.key} className="rounded-lg border border-border bg-muted/20 p-4">
+            <h3 className="font-semibold text-foreground">{item.title}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
             <Button className="mt-4" variant="outline" asChild>
               <Link href={item.href}>Buka Modul</Link>
             </Button>
@@ -226,27 +226,27 @@ const PendingActions = ({
 }: {
   items: AdminDashboardOverviewDTO["pendingActions"];
 }) => (
-  <Card className="border border-slate-800 bg-slate-900/60">
+  <Card>
     <CardHeader>
-      <CardTitle className="text-slate-50">Pending Actions</CardTitle>
-      <CardDescription className="text-slate-400">
+      <CardTitle>Pending Actions</CardTitle>
+      <CardDescription>
         Fokus operasional yang perlu segera ditindaklanjuti tim admin.
       </CardDescription>
     </CardHeader>
     <CardContent className="space-y-3">
       {items.length === 0 ? (
-        <div className="rounded-lg border border-slate-800 bg-slate-950/70 px-4 py-6 text-sm text-slate-400">
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
           Tidak ada pending action kritikal saat ini.
         </div>
       ) : (
         items.map((item) => (
-          <div key={item.key} className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
+          <div key={item.key} className="rounded-lg border border-border bg-muted/20 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-slate-100">{item.title}</p>
-                <p className="mt-1 text-sm text-slate-400">{item.description}</p>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
               </div>
-              <span className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-sm font-semibold text-indigo-300">
+              <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                 {formatCompactNumber(item.count)}
               </span>
             </div>
@@ -274,8 +274,8 @@ export const DashboardOverview = ({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-slate-50">Dashboard Overview</h1>
-          <p className="max-w-3xl text-sm text-slate-400">
+          <h1 className="text-3xl font-semibold text-foreground">Dashboard Overview</h1>
+          <p className="max-w-3xl text-sm text-muted-foreground">
             Command center operasional untuk memantau user, vendor, booking, pembayaran, review, dan aktivitas admin terbaru.
             Selamat bekerja, {actorName || "Admin"}.
           </p>
@@ -305,10 +305,10 @@ export const DashboardOverview = ({
 
       <div className="grid gap-4 xl:grid-cols-2">
         {data.bookings ? (
-          <Card className="border border-slate-800 bg-slate-900/60">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-50">Booking Overview</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle>Booking Overview</CardTitle>
+              <CardDescription>
                 Status booking dalam rentang waktu yang dipilih.
               </CardDescription>
             </CardHeader>
@@ -320,10 +320,10 @@ export const DashboardOverview = ({
         ) : null}
 
         {data.vendors ? (
-          <Card className="border border-slate-800 bg-slate-900/60">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-50">Vendor Overview</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle>Vendor Overview</CardTitle>
+              <CardDescription>
                 Distribusi status vendor dan performa vendor teratas.
               </CardDescription>
             </CardHeader>
@@ -337,10 +337,10 @@ export const DashboardOverview = ({
 
       <div className="grid gap-4 xl:grid-cols-2">
         {data.payments ? (
-          <Card className="border border-slate-800 bg-slate-900/60">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-50">Payment Overview</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle>Payment Overview</CardTitle>
+              <CardDescription>
                 Monitoring status bukti pembayaran sesuai rentang waktu aktif.
               </CardDescription>
             </CardHeader>
@@ -351,24 +351,24 @@ export const DashboardOverview = ({
         ) : null}
 
         {data.reviews ? (
-          <Card className="border border-slate-800 bg-slate-900/60">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-slate-50">Review Overview</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle>Review Overview</CardTitle>
+              <CardDescription>
                 Distribusi rating dan status review pada periode yang dipilih.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-                  <p className="text-sm text-slate-400">Average Rating</p>
-                  <p className="mt-2 text-3xl font-semibold text-amber-300">
+                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                  <p className="text-sm text-muted-foreground">Average Rating</p>
+                  <p className="mt-2 text-3xl font-semibold text-amber-500">
                     {formatAverageRating(data.reviews.averageRating)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-                  <p className="text-sm text-slate-400">Total Reviews in Range</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-50">
+                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                  <p className="text-sm text-muted-foreground">Total Reviews in Range</p>
+                  <p className="mt-2 text-3xl font-semibold text-foreground">
                     {formatCompactNumber(data.reviews.total)}
                   </p>
                 </div>

@@ -37,42 +37,42 @@ export default async function PaymentsPage({
       description="Kelola payment proof dan status verifikasi pembayaran untuk setiap booking."
     >
       <section className="space-y-5">
-        <form className="grid gap-3 rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] md:grid-cols-4">
+        <form className="grid gap-3 rounded-[28px] border border-white/10 bg-card p-5 shadow-2xl md:grid-cols-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Status</label>
+            <label className="text-sm font-medium text-slate-300">Status</label>
             <select
               name="status"
               defaultValue={typeof rawSearchParams.status === "string" ? rawSearchParams.status : ""}
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none"
+              className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none"
             >
-              <option value="">Semua status</option>
-              <option value={PaymentProofStatus.PENDING}>Pending</option>
-              <option value={PaymentProofStatus.VERIFIED}>Verified</option>
-              <option value={PaymentProofStatus.REJECTED}>Rejected</option>
+              <option value="" className="bg-slate-950">Semua status</option>
+              <option value={PaymentProofStatus.PENDING} className="bg-slate-950">Pending</option>
+              <option value={PaymentProofStatus.VERIFIED} className="bg-slate-950">Verified</option>
+              <option value={PaymentProofStatus.REJECTED} className="bg-slate-950">Rejected</option>
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Dari tanggal</label>
+            <label className="text-sm font-medium text-slate-300">Dari tanggal</label>
             <input
               type="date"
               name="dateFrom"
               defaultValue={typeof rawSearchParams.dateFrom === "string" ? rawSearchParams.dateFrom : ""}
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none"
+              className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Sampai tanggal</label>
+            <label className="text-sm font-medium text-slate-300">Sampai tanggal</label>
             <input
               type="date"
               name="dateTo"
               defaultValue={typeof rawSearchParams.dateTo === "string" ? rawSearchParams.dateTo : ""}
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none"
+              className="h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none"
             />
           </div>
           <div className="flex items-end">
             <button
               type="submit"
-              className="h-11 w-full rounded-2xl bg-slate-950 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="h-11 w-full rounded-2xl bg-rose-600 text-sm font-medium text-white transition hover:bg-rose-700"
             >
               Terapkan filter
             </button>

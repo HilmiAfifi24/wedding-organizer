@@ -11,6 +11,7 @@ export interface PublicVendorDiscoveryQuery {
   search?: string;
   categoryId?: string;
   city?: string;
+  adatId?: string;
   priceMin?: number;
   priceMax?: number;
   rating?: number;
@@ -48,6 +49,7 @@ export interface PublicVendorListResultDTO {
   filters: {
     categories: PublicVendorFilterOption[];
     cities: PublicVendorFilterOption[];
+    adats: PublicVendorFilterOption[];
   };
 }
 
@@ -90,6 +92,7 @@ export interface PublicVendorServiceItemDTO {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  adats?: Array<{ id: string; name: string }>;
 }
 
 export interface PublicVendorPortfolioItemDTO {

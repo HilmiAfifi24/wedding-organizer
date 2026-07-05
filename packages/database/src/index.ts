@@ -7,7 +7,7 @@ declare global {
   var prismaConfigVersion: number | undefined;
 }
 
-const PRISMA_CONFIG_VERSION = 2;
+const PRISMA_CONFIG_VERSION = 3;
 const prismaClient =
   globalThis.prisma && globalThis.prismaConfigVersion === PRISMA_CONFIG_VERSION
     ? globalThis.prisma

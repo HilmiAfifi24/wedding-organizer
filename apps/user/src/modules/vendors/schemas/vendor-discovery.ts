@@ -9,6 +9,7 @@ export const vendorDiscoveryQuerySchema = z
     search: z.string().trim().max(120).optional().or(z.literal("")),
     categoryId: z.string().trim().optional().or(z.literal("")),
     city: z.string().trim().optional().or(z.literal("")),
+    adatId: z.string().trim().optional().or(z.literal("")),
     priceMin: z.coerce.number().int().min(0).optional(),
     priceMax: z.coerce.number().int().min(0).optional(),
     rating: z.coerce.number().int().min(1).max(5).optional(),
@@ -27,6 +28,7 @@ export const vendorDiscoveryQuerySchema = z
     search: input.search || undefined,
     categoryId: input.categoryId || undefined,
     city: input.city || undefined,
+    adatId: input.adatId || undefined,
   }))
   .refine(
     (input) =>

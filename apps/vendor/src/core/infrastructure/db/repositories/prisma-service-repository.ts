@@ -12,7 +12,10 @@ import { prisma } from "../prisma";
 
 export class PrismaServiceRepository implements ServiceRepository {
   async findById(id: string): Promise<ServiceDTO | null> {
-    const service = await prisma.service.findUnique({ where: { id } });
+    const service = await prisma.service.findUnique({
+      where: { id },
+      include: { adats: true },
+    });
     if (!service) return null;
     return service as unknown as ServiceDTO;
   }
@@ -20,6 +23,7 @@ export class PrismaServiceRepository implements ServiceRepository {
   async listByVendor(vendorId: string, options?: ListOptions): Promise<ServiceDTO[]> {
     const services = await prisma.service.findMany({
       where: { vendorId },
+      include: { adats: true },
       take: options?.take,
       skip: options?.skip,
       orderBy: { createdAt: "desc" },
@@ -28,12 +32,31 @@ export class PrismaServiceRepository implements ServiceRepository {
   }
 
   async create(data: CreateServiceInput): Promise<ServiceDTO> {
-    const service = await prisma.service.create({ data });
+    const { adatIds, ...rest } = data;
+    const service = await prisma.service.create({
+      data: {
+        ...rest,
+        adats: adatIds && adatIds.length > 0
+          ? { connect: adatIds.map((id) => ({ id })) }
+          : undefined,
+      },
+      include: { adats: true },
+    });
     return service as unknown as ServiceDTO;
   }
 
   async update(id: string, data: UpdateServiceInput): Promise<ServiceDTO> {
-    const service = await prisma.service.update({ where: { id }, data });
+    const { adatIds, ...rest } = data;
+    const service = await prisma.service.update({
+      where: { id },
+      data: {
+        ...rest,
+        adats: adatIds
+          ? { set: adatIds.map((id) => ({ id })) }
+          : undefined,
+      },
+      include: { adats: true },
+    });
     return service as unknown as ServiceDTO;
   }
 

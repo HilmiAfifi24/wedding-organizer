@@ -49,6 +49,7 @@ export default async function VendorsPage({
         <VendorsFilterBar
           categories={result.filters.categories}
           cities={result.filters.cities}
+          adats={result.filters.adats}
           query={query}
         />
 

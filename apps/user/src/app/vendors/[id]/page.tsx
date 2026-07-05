@@ -39,7 +39,7 @@ export default async function VendorDetailPage({
             <p className="font-mono text-xs uppercase tracking-[0.35em] text-rose-500">
               Approved Vendor Detail
             </p>
-            <h2 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-4xl font-semibold tracking-tight text-white">
               {vendor.businessName}
             </h2>
           </div>

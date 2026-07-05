@@ -38,9 +38,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      style={{ colorScheme: "dark" }}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[radial-gradient(circle_at_top,#172554_0%,#020617_48%,#020617_100%)] text-slate-100">
         <ToasterProvider>{children}</ToasterProvider>
       </body>
     </html>

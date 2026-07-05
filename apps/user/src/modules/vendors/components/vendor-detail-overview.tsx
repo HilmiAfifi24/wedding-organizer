@@ -16,7 +16,7 @@ export function VendorDetailOverview({ vendor }: { vendor: PublicVendorDetailDTO
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-      <Card className="overflow-hidden rounded-[28px] border-white/80 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+      <Card className="overflow-hidden rounded-[28px] border-white/10 bg-card shadow-2xl">
         <div className="relative h-72 bg-[linear-gradient(135deg,_rgba(251,113,133,0.18),_rgba(251,191,36,0.16))]">
           {vendor.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -27,20 +27,20 @@ export function VendorDetailOverview({ vendor }: { vendor: PublicVendorDetailDTO
               <img src={vendor.logoUrl} alt={vendor.businessName} className="max-h-32 object-contain" />
             </div>
           ) : (
-            <div className="flex h-full items-center justify-center text-sm font-medium text-slate-500">
+            <div className="flex h-full items-center justify-center text-sm font-medium text-slate-400">
               Preview vendor belum tersedia
             </div>
           )}
         </div>
         <CardContent className="space-y-5 py-6">
           <div className="space-y-2">
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-rose-500">
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-rose-400">
               {vendor.categoryName || "Vendor"}
             </p>
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
+            <h1 className="text-4xl font-semibold tracking-tight text-white">
               {vendor.businessName}
             </h1>
-            <p className="text-sm leading-7 text-slate-600">
+            <p className="text-sm leading-7 text-slate-300">
               {vendor.description || "Vendor ini belum menambahkan deskripsi publik."}
             </p>
           </div>
@@ -48,52 +48,52 @@ export function VendorDetailOverview({ vendor }: { vendor: PublicVendorDetailDTO
           <VendorRating rating={vendor.averageRating} totalReviews={vendor.totalReviews} />
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Starting Price</p>
-              <p className="mt-2 font-semibold text-slate-950">{formatPrice(vendor.startingPrice)}</p>
+              <p className="mt-2 font-semibold text-white">{formatPrice(vendor.startingPrice)}</p>
             </div>
-            <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">City</p>
-              <p className="mt-2 font-semibold text-slate-950">{vendor.city || "-"}</p>
+              <p className="mt-2 font-semibold text-white">{vendor.city || "-"}</p>
             </div>
-            <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Bookings</p>
-              <p className="mt-2 font-semibold text-slate-950">{vendor.bookingCount}</p>
+              <p className="mt-2 font-semibold text-white">{vendor.bookingCount}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="rounded-[28px] border-white/80 bg-white/88 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+      <Card className="rounded-[28px] border-white/10 bg-card shadow-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-slate-950">Business Profile</CardTitle>
+          <CardTitle className="text-2xl text-white">Business Profile</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5 text-sm text-slate-700">
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+        <CardContent className="space-y-5 text-sm text-slate-300">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Address</p>
-            <p className="mt-2 leading-6 text-slate-700">
+            <p className="mt-2 leading-6 text-slate-200">
               {[vendor.businessAddress, vendor.city, vendor.province].filter(Boolean).join(", ") || "-"}
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Price Range</p>
-            <p className="mt-2 leading-6 text-slate-700">{vendor.priceRange || "Berdasarkan paket aktif vendor"}</p>
+            <p className="mt-2 leading-6 text-slate-200">{vendor.priceRange || "Berdasarkan paket aktif vendor"}</p>
           </div>
 
-          <div className="space-y-3 rounded-3xl border border-slate-100 bg-slate-50/90 p-4">
+          <div className="space-y-3 rounded-3xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Contact Info</p>
             {contactEntries.length ? (
               contactEntries.map((entry) => (
                 <div key={entry.label}>
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     {entry.label}
                   </p>
-                  <p className="mt-1 leading-6 text-slate-700">{entry.value}</p>
+                  <p className="mt-1 leading-6 text-slate-200">{entry.value}</p>
                 </div>
               ))
             ) : (
-              <p className="leading-6 text-slate-700">Kontak vendor belum dibuka untuk publik.</p>
+              <p className="leading-6 text-slate-300">Kontak vendor belum dibuka untuk publik.</p>
             )}
           </div>
         </CardContent>

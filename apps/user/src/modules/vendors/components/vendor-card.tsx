@@ -8,7 +8,7 @@ import { VendorRating } from "./vendor-rating";
 
 export function VendorCard({ vendor }: { vendor: PublicVendorListItemDTO }) {
   return (
-    <Card className="overflow-hidden rounded-[28px] border-white/80 bg-white/85 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+    <Card className="overflow-hidden rounded-[28px] border-white/10 bg-card shadow-2xl">
       <div className="relative h-56 bg-[linear-gradient(135deg,_rgba(251,113,133,0.18),_rgba(251,191,36,0.16))]">
         {vendor.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -23,7 +23,7 @@ export function VendorCard({ vendor }: { vendor: PublicVendorListItemDTO }) {
             <img src={vendor.logoUrl} alt={vendor.businessName} className="max-h-28 object-contain" />
           </div>
         ) : (
-          <div className="flex h-full items-center justify-center text-center text-sm font-medium text-slate-500">
+          <div className="flex h-full items-center justify-center text-center text-sm font-medium text-slate-400">
             Preview vendor belum tersedia
           </div>
         )}
@@ -31,27 +31,27 @@ export function VendorCard({ vendor }: { vendor: PublicVendorListItemDTO }) {
 
       <CardContent className="space-y-4 py-6">
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.24em] text-rose-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.24em] text-rose-400 font-semibold">
             <span>{vendor.categoryName || "Vendor"}</span>
-            <span className="text-slate-300">•</span>
+            <span className="text-slate-500">•</span>
             <span>{vendor.city || "Indonesia"}</span>
           </div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 className="text-2xl font-semibold tracking-tight text-white">
             {vendor.businessName}
           </h2>
-          <p className="text-sm leading-6 text-slate-600">{vendor.shortDescription}</p>
+          <p className="text-sm leading-6 text-slate-300">{vendor.shortDescription}</p>
         </div>
 
         <VendorRating rating={vendor.averageRating} totalReviews={vendor.totalReviews} />
 
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-3">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Starting Price</p>
-            <p className="mt-2 font-semibold text-slate-950">{formatPrice(vendor.startingPrice)}</p>
+            <p className="mt-2 font-semibold text-white">{formatPrice(vendor.startingPrice)}</p>
           </div>
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/90 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-3">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Bookings</p>
-            <p className="mt-2 font-semibold text-slate-950">{vendor.bookingCount}</p>
+            <p className="mt-2 font-semibold text-white">{vendor.bookingCount}</p>
           </div>
         </div>
 

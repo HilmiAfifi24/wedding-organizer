@@ -31,6 +31,7 @@ type ServiceFormState = {
   description: string;
   price: string;
   isActive: boolean;
+  adatIds: string[];
 };
 
 type ServiceStatusFilter = "all" | "active" | "inactive";
@@ -39,6 +40,11 @@ const normalizeService = (service: ServiceDTO): ServiceDTO => ({
   ...service,
   createdAt: new Date(service.createdAt),
   updatedAt: new Date(service.updatedAt),
+  adats: service.adats?.map((adat) => ({
+    ...adat,
+    createdAt: new Date(adat.createdAt),
+    updatedAt: new Date(adat.updatedAt),
+  })),
 });
 
 const currencyFormatter = new Intl.NumberFormat("id-ID", {
@@ -58,14 +64,16 @@ const createDefaultForm = (): ServiceFormState => ({
   description: "",
   price: "",
   isActive: true,
+  adatIds: [],
 });
 
 interface ServicesManagerProps {
   initialServices: ServiceDTO[];
+  initialAdats: { id: string; name: string }[];
   vendorStatus: VendorStatus;
 }
 
-export function ServicesManager({ initialServices, vendorStatus }: ServicesManagerProps) {
+export function ServicesManager({ initialServices, initialAdats, vendorStatus }: ServicesManagerProps) {
   const [services, setServices] = useState<ServiceDTO[]>(initialServices.map(normalizeService));
   const [form, setForm] = useState<ServiceFormState>(createDefaultForm);
   const [searchQuery, setSearchQuery] = useState("");
@@ -159,6 +167,7 @@ export function ServicesManager({ initialServices, vendorStatus }: ServicesManag
         description: form.description.trim() || undefined,
         price: Number(form.price),
         isActive: form.isActive,
+        adatIds: form.adatIds,
       };
 
       if (form.mode === "create") {
@@ -207,6 +216,7 @@ export function ServicesManager({ initialServices, vendorStatus }: ServicesManag
       description: service.description ?? "",
       price: String(service.price),
       isActive: service.isActive,
+      adatIds: service.adats?.map((a) => a.id) ?? [],
     });
   };
 
@@ -315,6 +325,31 @@ export function ServicesManager({ initialServices, vendorStatus }: ServicesManag
                 className="flex w-full rounded-md border border-white/10 bg-slate-900 px-3 py-2 text-sm text-slate-100"
               />
             </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium text-slate-200">Adat / Budaya Tradisional</label>
+              <div className="flex flex-wrap gap-4 rounded-md border border-white/10 bg-slate-900 p-3">
+                {initialAdats.map((adat) => {
+                  const isChecked = form.adatIds.includes(adat.id);
+                  return (
+                    <label key={adat.id} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white select-none">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const nextAdatIds = e.target.checked
+                            ? [...form.adatIds, adat.id]
+                            : form.adatIds.filter((id) => id !== adat.id);
+                          setForm((current) => ({ ...current, adatIds: nextAdatIds }));
+                        }}
+                        className="cursor-pointer rounded border-white/10 bg-slate-950 text-slate-100"
+                      />
+                      {adat.name}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <label className="flex items-center gap-2 text-sm text-slate-300">
@@ -404,6 +439,18 @@ export function ServicesManager({ initialServices, vendorStatus }: ServicesManag
                     <p className="text-sm font-medium text-cyan-200">
                       {currencyFormatter.format(service.price)}
                     </p>
+                    {service.adats && service.adats.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 mt-1 mb-2">
+                        {service.adats.map((adat) => (
+                          <span
+                            key={adat.id}
+                            className="rounded-lg bg-white/5 border border-white/10 px-2 py-0.5 text-xs text-slate-300 font-medium"
+                          >
+                            {adat.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                     <p className="max-w-3xl text-sm leading-6 text-slate-400">
                       {service.description || "Belum ada deskripsi layanan."}
                     </p>

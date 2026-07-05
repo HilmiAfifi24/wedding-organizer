@@ -302,6 +302,28 @@ export interface AdminCategoriesQuery {
   sortDirection?: "asc" | "desc";
 }
 
+export interface AdatDTO {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AdminAdatListItemDTO extends AdatDTO {
+  serviceCount: number;
+}
+
+export interface AdminAdatDetailDTO extends AdminAdatListItemDTO {}
+
+export interface AdminAdatsQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: "name" | "createdAt" | "updatedAt";
+  sortDirection?: "asc" | "desc";
+}
+
+
 export interface VendorDTO {
   id: string;
   ownerId: string;
@@ -485,6 +507,7 @@ export interface ServiceDTO {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  adats?: AdatDTO[];
 }
 
 export interface BookingDTO {
@@ -965,6 +988,7 @@ export interface CreateServiceInput {
   description?: string;
   price: number;
   isActive?: boolean;
+  adatIds?: string[];
 }
 
 export interface UpdateServiceInput {
@@ -972,6 +996,7 @@ export interface UpdateServiceInput {
   description?: string;
   price?: number;
   isActive?: boolean;
+  adatIds?: string[];
 }
 
 export interface CreateBookingInput {

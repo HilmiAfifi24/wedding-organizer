@@ -81,30 +81,30 @@ export function BookingsList({
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-[28px] border-white/80 bg-white/92 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+      <Card className="rounded-[28px] border-white/10 bg-card shadow-2xl">
         <CardContent className="p-5">
           <form action={USER_AUTH_ROUTES.bookings} className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
             <div className="xl:col-span-2">
-              <label className="text-sm font-medium text-slate-700">Cari booking</label>
+              <label className="text-sm font-medium text-slate-300">Cari booking</label>
               <input
                 type="text"
                 name="search"
                 defaultValue={filters.search}
                 placeholder="Kode booking, vendor, atau layanan"
-                className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-300"
+                className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder-slate-400 outline-none focus:border-rose-500"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Status booking</label>
+              <label className="text-sm font-medium text-slate-300">Status booking</label>
               <select
                 name="bookingStatus"
                 defaultValue={filters.bookingStatus ?? ""}
-                className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-300"
+                className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-rose-500"
               >
-                <option value="">Semua status</option>
+                <option value="" className="bg-slate-950">Semua status</option>
                 {Object.entries(BOOKING_STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
+                  <option key={value} value={value} className="bg-slate-950">
                     {label}
                   </option>
                 ))}
@@ -112,15 +112,15 @@ export function BookingsList({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Status pembayaran</label>
+              <label className="text-sm font-medium text-slate-300">Status pembayaran</label>
               <select
                 name="paymentStatus"
                 defaultValue={filters.paymentStatus ?? ""}
-                className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-300"
+                className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-rose-500"
               >
-                <option value="">Semua status</option>
+                <option value="" className="bg-slate-950">Semua status</option>
                 {Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
+                  <option key={value} value={value} className="bg-slate-950">
                     {label}
                   </option>
                 ))}
@@ -128,34 +128,34 @@ export function BookingsList({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Tanggal acara dari</label>
+              <label className="text-sm font-medium text-slate-300">Tanggal acara dari</label>
               <input
                 type="date"
                 name="eventDateFrom"
                 defaultValue={filters.eventDateFrom}
-                className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-300"
+                className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-rose-500"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Tanggal acara sampai</label>
+              <label className="text-sm font-medium text-slate-300">Tanggal acara sampai</label>
               <input
                 type="date"
                 name="eventDateTo"
                 defaultValue={filters.eventDateTo}
-                className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-300"
+                className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-rose-500"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Urutkan</label>
+              <label className="text-sm font-medium text-slate-300">Urutkan</label>
               <select
                 name="sort"
                 defaultValue={filters.sort}
-                className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-300"
+                className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-rose-500"
               >
                 {BOOKING_SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} className="bg-slate-950">
                     {option.label}
                   </option>
                 ))}
@@ -166,10 +166,10 @@ export function BookingsList({
             <input type="hidden" name="page" value="1" />
 
             <div className="flex flex-wrap gap-3 xl:justify-end">
-              <Button type="submit" className="h-11 rounded-2xl bg-slate-950 text-white hover:bg-slate-800">
+              <Button type="submit" className="h-11 rounded-2xl bg-rose-600 text-white hover:bg-rose-700">
                 Terapkan filter
               </Button>
-              <Button asChild type="button" variant="outline" className="h-11 rounded-2xl">
+              <Button asChild type="button" className="h-11 rounded-2xl border-white/10 bg-white/5 text-slate-100 hover:bg-white/10">
                 <Link href={USER_AUTH_ROUTES.bookings}>Reset</Link>
               </Button>
             </div>
@@ -178,10 +178,10 @@ export function BookingsList({
       </Card>
 
       {!result.items.length ? (
-        <Card className="rounded-[28px] border border-dashed border-slate-200 bg-white/85 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
+        <Card className="rounded-[28px] border border-dashed border-white/10 bg-card shadow-2xl">
           <CardContent className="space-y-4 p-8 text-center">
-            <p className="text-xl font-semibold text-slate-950">Belum ada hasil booking</p>
-            <p className="text-sm leading-6 text-slate-600">{emptyStateMessage}</p>
+            <p className="text-xl font-semibold text-white">Belum ada hasil booking</p>
+            <p className="text-sm leading-6 text-slate-300">{emptyStateMessage}</p>
             <Button asChild className="h-11 rounded-2xl bg-rose-600 text-white hover:bg-rose-700">
               <Link href={USER_AUTH_ROUTES.vendors}>Cari vendor</Link>
             </Button>
@@ -192,12 +192,12 @@ export function BookingsList({
           {result.items.map((item) => (
             <Card
               key={item.id}
-              className="rounded-[28px] border-white/80 bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+              className="rounded-[28px] border-white/10 bg-card shadow-2xl"
             >
               <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-lg font-semibold text-slate-950">{item.bookingCode}</p>
+                    <p className="text-lg font-semibold text-white">{item.bookingCode}</p>
                     <Badge className={`border ${getBookingStatusBadgeClassName(item.status)}`}>
                       {BOOKING_STATUS_LABELS[item.status]}
                     </Badge>
@@ -207,28 +207,28 @@ export function BookingsList({
                   </div>
 
                   <div>
-                    <p className="text-base font-medium text-slate-900">{item.vendor.businessName}</p>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-base font-medium text-white">{item.vendor.businessName}</p>
+                    <p className="text-sm text-slate-300">
                       {item.service?.name || "Paket vendor"} · {formatBookingDate(item.eventDate)}
                     </p>
-                    <p className="text-sm text-slate-600">{item.eventLocation}</p>
+                    <p className="text-sm text-slate-300">{item.eventLocation}</p>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3 lg:min-w-[220px] lg:items-end">
                   <div className="text-right">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Total booking</p>
-                    <p className="mt-1 text-xl font-semibold text-slate-950">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Total booking</p>
+                    <p className="mt-1 text-xl font-semibold text-white">
                       {formatBookingPrice(item.totalAmount)}
                     </p>
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-slate-300">
                       Sisa pembayaran {formatBookingPrice(item.remainingBalance)}
                     </p>
                   </div>
 
                   <Button
                     asChild
-                    className="h-10 rounded-2xl bg-slate-950 text-white hover:bg-slate-800"
+                    className="h-10 rounded-2xl bg-rose-600 text-white hover:bg-rose-700"
                   >
                     <Link href={`${USER_AUTH_ROUTES.bookings}/${item.id}`}>Lihat detail</Link>
                   </Button>
@@ -240,17 +240,16 @@ export function BookingsList({
       )}
 
       {result.totalPages > 1 ? (
-        <Card className="rounded-[28px] border-white/80 bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+        <Card className="rounded-[28px] border-white/10 bg-card shadow-2xl">
           <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-300">
               Halaman {result.page} dari {result.totalPages} · {result.totalItems} booking
             </p>
 
             <div className="flex flex-wrap gap-2">
               <Button
                 asChild
-                variant="outline"
-                className="h-10 rounded-2xl"
+                className="h-10 rounded-2xl border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
                 disabled={result.page <= 1}
               >
                 <Link
@@ -264,8 +263,7 @@ export function BookingsList({
                 <Button
                   key={pageNumber}
                   asChild
-                  variant={pageNumber === result.page ? "primary" : "outline"}
-                  className="h-10 min-w-10 rounded-2xl"
+                  className={`h-10 min-w-10 rounded-2xl ${pageNumber === result.page ? "bg-rose-600 text-white" : "border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"}`}
                 >
                   <Link href={`${USER_AUTH_ROUTES.bookings}?${buildQueryString(filters, pageNumber)}`}>
                     {pageNumber}
@@ -275,8 +273,7 @@ export function BookingsList({
 
               <Button
                 asChild
-                variant="outline"
-                className="h-10 rounded-2xl"
+                className="h-10 rounded-2xl border-white/10 bg-white/5 text-slate-100 hover:bg-white/10"
                 disabled={result.page >= result.totalPages}
               >
                 <Link

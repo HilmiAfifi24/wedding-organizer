@@ -45,6 +45,7 @@ export class CreateVendorServiceUseCase {
       description: input.description?.trim() || undefined,
       price: input.price,
       isActive: input.isActive ?? true,
+      adatIds: input.adatIds,
     });
   }
 }
