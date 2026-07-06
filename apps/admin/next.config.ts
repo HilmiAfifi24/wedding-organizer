@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   },
   devIndicators: false,
   transpilePackages: ["database"],
+  outputFileTracingIncludes: {
+    "**/*": ["../../packages/database/generated/prisma/**/*.node"],
+  },
 };
 
 export default nextConfig;

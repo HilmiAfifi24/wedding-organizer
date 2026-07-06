@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
     root: workspaceRoot,
   },
   transpilePackages: ["database"],
+  outputFileTracingIncludes: {
+    "**/*": ["../../packages/database/generated/prisma/**/*.node"],
+  },
 };
 
 export default nextConfig;
