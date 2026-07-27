@@ -78,7 +78,7 @@ export function ForgotPasswordForm() {
               {...register("email")}
               type="email"
               placeholder="nama@email.com"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.email ? <p className="text-xs text-rose-600">{errors.email.message}</p> : null}
           </div>

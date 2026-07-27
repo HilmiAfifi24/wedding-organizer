@@ -23,6 +23,7 @@ type PrismaBookingListRecord = {
   bookedAt: Date;
   status: string;
   notes: string | null;
+  specialRequest: string | null;
   createdAt: Date;
   updatedAt: Date;
   userId: string;
@@ -99,6 +100,7 @@ const mapBookingListItem = (booking: PrismaBookingListRecord): AdminBookingListI
   bookedAt: booking.bookedAt,
   status: mapBookingStatus(booking.status),
   notes: booking.notes,
+  specialRequest: booking.specialRequest,
   createdAt: booking.createdAt,
   updatedAt: booking.updatedAt,
   userId: booking.userId,
@@ -294,6 +296,7 @@ export class PrismaVendorBookingManagementRepository implements VendorBookingMan
         bookedAt: booking.bookedAt,
         status: booking.status,
         notes: booking.notes,
+        specialRequest: booking.specialRequest,
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
         userId: booking.userId,

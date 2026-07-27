@@ -37,6 +37,7 @@ export const parseJsonBody = async <T>(request: Request): Promise<T> => {
 };
 
 export const handleApiError = (error: unknown) => {
+  console.error("API Route Error:", error);
   if (error instanceof Error) {
     if (error.message === "Invalid JSON body") {
       return errorResponse(400, error.message);

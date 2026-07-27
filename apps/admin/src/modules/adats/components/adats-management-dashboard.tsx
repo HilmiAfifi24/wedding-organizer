@@ -110,9 +110,11 @@ export const AdatsManagementDashboard = ({
   };
 
   const handleSubmit = async () => {
+    console.log("handleSubmit called. mode:", formState.mode, "adatId:", formState.adatId, "name:", formState.name);
     const normalizedName = formState.name.trim();
 
     if (!normalizedName) {
+      console.log("Validation failed: name is empty");
       addToast({
         title: "Validasi gagal",
         description: "Nama adat wajib diisi.",
@@ -123,23 +125,30 @@ export const AdatsManagementDashboard = ({
 
     try {
       if (formState.mode === "create") {
+        console.log("Creating adat:", normalizedName);
         await createAdat(normalizedName);
+        console.log("Adat created successfully");
         addToast({
           title: "Adat ditambahkan",
           description: `Adat ${normalizedName} berhasil dibuat.`,
           tone: "success",
         });
       } else if (formState.adatId) {
+        console.log("Updating adat:", formState.adatId, "to:", normalizedName);
         await updateAdat(formState.adatId, normalizedName);
+        console.log("Adat updated successfully");
         addToast({
           title: "Adat diperbarui",
           description: `Adat ${normalizedName} berhasil diperbarui.`,
           tone: "success",
         });
+      } else {
+        console.warn("Edit mode active but adatId is missing");
       }
 
       resetForm();
     } catch (actionError) {
+      console.error("Error during handleSubmit:", actionError);
       addToast({
         title: "Aksi gagal",
         description:
@@ -148,6 +157,7 @@ export const AdatsManagementDashboard = ({
       });
     }
   };
+
 
   const handleEdit = (adat: AdminAdatListItemDTO) => {
     setFormState({

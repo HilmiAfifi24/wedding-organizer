@@ -334,6 +334,19 @@ export const BookingDetailView = ({ bookingId }: BookingDetailViewProps) => {
             <Badge variant={getBookingStatusBadgeVariant(booking.status)}>{booking.status}</Badge>
           </div>
           <div>
+            <p className="text-xs text-muted-foreground">Tipe Paket</p>
+            <Badge
+              variant="outline"
+              className={
+                booking.specialRequest
+                  ? "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-500/30 dark:bg-purple-500/10 dark:text-purple-400"
+                  : "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              }
+            >
+              {booking.specialRequest ? "Kustom Karakteristik" : "Paket Dasar"}
+            </Badge>
+          </div>
+          <div>
             <p className="text-xs text-muted-foreground">Booking Date</p>
             <p className="font-medium">{formatDateTime(booking.bookedAt)}</p>
           </div>
@@ -349,6 +362,12 @@ export const BookingDetailView = ({ bookingId }: BookingDetailViewProps) => {
             <p className="text-xs text-muted-foreground">Catatan Booking</p>
             <p className="font-medium">{booking.notes || "-"}</p>
           </div>
+          {booking.specialRequest && (
+            <div className="md:col-span-2 xl:col-span-4">
+              <p className="text-xs text-muted-foreground">Permintaan Karakteristik Khusus</p>
+              <p className="font-medium text-purple-600 dark:text-purple-300">{booking.specialRequest}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

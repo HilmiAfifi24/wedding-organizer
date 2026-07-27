@@ -90,7 +90,7 @@ export function RegisterForm() {
               {...register("fullName")}
               type="text"
               placeholder="Alya Putri"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.fullName ? <p className="text-xs text-rose-600">{errors.fullName.message}</p> : null}
           </div>
@@ -101,7 +101,7 @@ export function RegisterForm() {
               {...register("email")}
               type="email"
               placeholder="nama@email.com"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.email ? <p className="text-xs text-rose-600">{errors.email.message}</p> : null}
           </div>
@@ -112,7 +112,7 @@ export function RegisterForm() {
               {...register("phoneNumber")}
               type="tel"
               placeholder="+6281234567890"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.phoneNumber ? <p className="text-xs text-rose-600">{errors.phoneNumber.message}</p> : null}
           </div>
@@ -123,7 +123,7 @@ export function RegisterForm() {
               {...register("password")}
               type="password"
               placeholder="Minimal 6 karakter"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.password ? <p className="text-xs text-rose-600">{errors.password.message}</p> : null}
           </div>
@@ -134,7 +134,7 @@ export function RegisterForm() {
               {...register("confirmPassword")}
               type="password"
               placeholder="Ulangi password"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.confirmPassword ? (
               <p className="text-xs text-rose-600">{errors.confirmPassword.message}</p>

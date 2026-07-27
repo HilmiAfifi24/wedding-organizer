@@ -334,6 +334,19 @@ export const BookingDetailView = ({ bookingId }: BookingDetailViewProps) => {
             <Badge variant={getBookingStatusBadgeVariant(booking.status)}>{booking.status}</Badge>
           </div>
           <div>
+            <p className="text-xs text-slate-400">Tipe Paket</p>
+            <Badge
+              variant="outline"
+              className={
+                booking.specialRequest
+                  ? "border-purple-500/30 bg-purple-500/10 text-purple-400"
+                  : "border-slate-700 bg-slate-800 text-slate-400"
+              }
+            >
+              {booking.specialRequest ? "Kustom Karakteristik" : "Paket Dasar"}
+            </Badge>
+          </div>
+          <div>
             <p className="text-xs text-slate-400">Booking Date</p>
             <p className="font-medium">{formatDateTime(booking.bookedAt)}</p>
           </div>
@@ -349,6 +362,12 @@ export const BookingDetailView = ({ bookingId }: BookingDetailViewProps) => {
             <p className="text-xs text-slate-400">Notes</p>
             <p className="font-medium">{booking.notes || "-"}</p>
           </div>
+          {booking.specialRequest && (
+            <div className="md:col-span-2 xl:col-span-4">
+              <p className="text-xs text-slate-400">Permintaan Karakteristik Khusus</p>
+              <p className="font-medium text-purple-300">{booking.specialRequest}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

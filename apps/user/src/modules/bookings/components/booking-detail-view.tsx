@@ -134,6 +134,15 @@ export function BookingDetailView({
               <Badge className={`border ${getPaymentStatusBadgeClassName(booking.paymentStatus)}`}>
                 {PAYMENT_STATUS_LABELS[booking.paymentStatus]}
               </Badge>
+              <Badge
+                className={`border ${
+                  booking.specialRequest
+                    ? "border-purple-200 bg-purple-50 text-purple-700"
+                    : "border-slate-200 bg-slate-100 text-slate-700"
+                }`}
+              >
+                {booking.specialRequest ? "Kustom Karakteristik" : "Paket Dasar"}
+              </Badge>
             </div>
           </CardHeader>
           <CardContent className="grid gap-5 md:grid-cols-2">

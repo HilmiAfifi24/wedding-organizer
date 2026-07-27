@@ -63,12 +63,31 @@ export function BookingForm({
     [defaultServiceId, services, watchedServiceId]
   );
 
+  const [bookingType, setBookingType] = useState<"standard" | "custom">("standard");
+
   const onSubmit = async (values: CreateBookingInput) => {
-    setIsSubmitting(true);
     setError(null);
 
+    if (bookingType === "custom") {
+      const requestText = values.specialRequest?.trim() ?? "";
+      if (requestText.length < 10) {
+        setError("Detail kustomisasi wajib diisi minimal 10 karakter.");
+        toast({
+          title: "Validasi gagal",
+          description: "Detail kustomisasi wajib diisi minimal 10 karakter.",
+          variant: "error",
+        });
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+
     try {
-      const response = await bookingsApi.create(values);
+      const response = await bookingsApi.create({
+        ...values,
+        specialRequest: bookingType === "standard" ? undefined : values.specialRequest?.trim(),
+      });
 
       toast({
         title: "Booking berhasil dibuat",
@@ -191,7 +210,7 @@ export function BookingForm({
                   {...register("eventDate")}
                   type="date"
                   min={getBookingDateInputMin()}
-                  className="h-11 rounded-2xl border-slate-200 bg-white"
+                  className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
                 />
                 {errors.eventDate ? (
                   <p className="text-xs text-rose-600">{errors.eventDate.message}</p>
@@ -205,7 +224,7 @@ export function BookingForm({
                   type="number"
                   min={1}
                   placeholder="Opsional"
-                  className="h-11 rounded-2xl border-slate-200 bg-white"
+                  className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
                 />
                 {errors.guestCount ? (
                   <p className="text-xs text-rose-600">{errors.guestCount.message}</p>
@@ -232,7 +251,7 @@ export function BookingForm({
                 <Input
                   {...register("customerName")}
                   type="text"
-                  className="h-11 rounded-2xl border-slate-200 bg-white"
+                  className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
                 />
                 {errors.customerName ? (
                   <p className="text-xs text-rose-600">{errors.customerName.message}</p>
@@ -243,7 +262,7 @@ export function BookingForm({
                 <Input
                   {...register("customerPhone")}
                   type="tel"
-                  className="h-11 rounded-2xl border-slate-200 bg-white"
+                  className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
                 />
                 {errors.customerPhone ? (
                   <p className="text-xs text-rose-600">{errors.customerPhone.message}</p>
@@ -256,7 +275,7 @@ export function BookingForm({
               <Input
                 {...register("customerEmail")}
                 type="email"
-                className="h-11 rounded-2xl border-slate-200 bg-white"
+                className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
               />
               {errors.customerEmail ? (
                 <p className="text-xs text-rose-600">{errors.customerEmail.message}</p>
@@ -273,15 +292,60 @@ export function BookingForm({
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Permintaan khusus</label>
-              <textarea
-                {...register("specialRequest")}
-                rows={3}
-                placeholder="Opsional"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-rose-300"
-              />
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-slate-700">Tipe Pemesanan / Paket</label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setBookingType("standard")}
+                  className={`flex flex-col rounded-2xl border p-4 text-left outline-none transition-all ${
+                    bookingType === "standard"
+                      ? "border-rose-500 bg-rose-50/50 ring-1 ring-rose-500"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <span className={`text-sm font-semibold ${bookingType === "standard" ? "text-rose-700" : "text-slate-900"}`}>
+                    Paket Dasar (Standard)
+                  </span>
+                  <span className="mt-1 text-xs text-slate-500 leading-normal">
+                    Menggunakan paket standar/dasar dari vendor tanpa penyesuaian khusus.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBookingType("custom")}
+                  className={`flex flex-col rounded-2xl border p-4 text-left outline-none transition-all ${
+                    bookingType === "custom"
+                      ? "border-rose-500 bg-rose-50/50 ring-1 ring-rose-500"
+                      : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <span className={`text-sm font-semibold ${bookingType === "custom" ? "text-rose-700" : "text-slate-900"}`}>
+                    Kustom (Karakteristik Berbeda)
+                  </span>
+                  <span className="mt-1 text-xs text-slate-500 leading-normal">
+                    Meminta penyesuaian/kustomisasi detail layanan sesuai kebutuhan Anda.
+                  </span>
+                </button>
+              </div>
             </div>
+
+            {bookingType === "custom" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Detail Permintaan Karakteristik Khusus <span className="text-rose-600">*</span>
+                </label>
+                <textarea
+                  {...register("specialRequest")}
+                  rows={3}
+                  placeholder="Jelaskan karakteristik/kustomisasi berbeda yang Anda butuhkan secara detail (min. 10 karakter)..."
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-rose-300"
+                />
+                {errors.specialRequest ? (
+                  <p className="text-xs text-rose-600">{errors.specialRequest.message}</p>
+                ) : null}
+              </div>
+            )}
 
             <div className="rounded-3xl bg-slate-950 px-5 py-4 text-white">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Total booking</p>

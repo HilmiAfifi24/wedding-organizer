@@ -110,9 +110,11 @@ export const CategoriesManagementDashboard = ({
   };
 
   const handleSubmit = async () => {
+    console.log("handleSubmit called. mode:", formState.mode, "categoryId:", formState.categoryId, "name:", formState.name);
     const normalizedName = formState.name.trim();
 
     if (!normalizedName) {
+      console.log("Validation failed: name is empty");
       addToast({
         title: "Validasi gagal",
         description: "Nama kategori wajib diisi.",
@@ -123,23 +125,30 @@ export const CategoriesManagementDashboard = ({
 
     try {
       if (formState.mode === "create") {
+        console.log("Creating category:", normalizedName);
         await createCategory(normalizedName);
+        console.log("Category created successfully");
         addToast({
           title: "Kategori ditambahkan",
           description: `Kategori ${normalizedName} berhasil dibuat.`,
           tone: "success",
         });
       } else if (formState.categoryId) {
+        console.log("Updating category:", formState.categoryId, "to:", normalizedName);
         await updateCategory(formState.categoryId, normalizedName);
+        console.log("Category updated successfully");
         addToast({
           title: "Kategori diperbarui",
           description: `Kategori ${normalizedName} berhasil diperbarui.`,
           tone: "success",
         });
+      } else {
+        console.warn("Edit mode active but categoryId is missing");
       }
 
       resetForm();
     } catch (actionError) {
+      console.error("Error during handleSubmit:", actionError);
       addToast({
         title: "Aksi gagal",
         description:
@@ -148,6 +157,7 @@ export const CategoriesManagementDashboard = ({
       });
     }
   };
+
 
   const handleEdit = (category: AdminCategoryListItemDTO) => {
     setFormState({

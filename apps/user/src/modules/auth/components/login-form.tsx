@@ -94,7 +94,7 @@ export function LoginForm() {
               {...register("email")}
               type="email"
               placeholder="nama@email.com"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.email ? <span className="text-xs text-rose-600">{errors.email.message}</span> : null}
           </div>
@@ -110,7 +110,7 @@ export function LoginForm() {
               {...register("password")}
               type="password"
               placeholder="••••••••"
-              className="h-11 rounded-2xl border-slate-200 bg-white"
+              className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
             />
             {errors.password ? <span className="text-xs text-rose-600">{errors.password.message}</span> : null}
           </div>

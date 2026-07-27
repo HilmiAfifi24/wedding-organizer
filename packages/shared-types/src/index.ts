@@ -538,6 +538,7 @@ export interface AdminBookingListItemDTO {
   bookedAt: Date;
   status: BookingStatus;
   notes?: string | null;
+  specialRequest?: string | null;
   createdAt: Date;
   updatedAt: Date;
   userId: string;

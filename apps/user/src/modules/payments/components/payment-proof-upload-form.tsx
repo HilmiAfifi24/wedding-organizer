@@ -200,7 +200,7 @@ export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUp
                 {...register("amount", { valueAsNumber: true })}
                 type="number"
                 min={1}
-                className="h-11 rounded-2xl border-slate-200 bg-white"
+                className="h-11 rounded-2xl border-slate-200 bg-white text-slate-900"
               />
               <p className="text-xs text-slate-500">
                 Nominal termin saat ini: {formatPaymentPrice(context.term.amount)}
