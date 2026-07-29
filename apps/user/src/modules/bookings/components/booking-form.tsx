@@ -146,9 +146,64 @@ export function BookingForm({
               <>
                 <div>
                   <p className="text-lg font-semibold text-slate-950">{selectedService.name}</p>
-                  <p className="mt-1 leading-6">
-                    {selectedService.description || "Vendor belum menambahkan deskripsi paket ini."}
-                  </p>
+                    {(() => {
+                      const items = selectedService.description
+                        ? selectedService.description.split(/[•\n\r*|-]+/).map((i) => i.trim()).filter(Boolean)
+                        : [];
+                      
+                      if (items.length === 0) {
+                        return (
+                          <p className="mt-1 leading-6 text-slate-400 italic">
+                            Vendor belum menambahkan deskripsi paket ini.
+                          </p>
+                        );
+                      }
+
+                      const maxVisible = 4;
+                      const hasMore = items.length > maxVisible;
+                      const visibleItems = items.slice(0, maxVisible);
+                      const remainingCount = items.length - maxVisible;
+
+                      return (
+                        <div className="relative group cursor-help mt-2">
+                          {/* Visible List in the Card */}
+                          <ul className="space-y-1.5 text-sm text-slate-600">
+                            {visibleItems.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2 leading-relaxed">
+                                <span className="text-rose-500 font-bold mt-0.5">•</span>
+                                <span className="line-clamp-2">{item}</span>
+                              </li>
+                            ))}
+                            {hasMore && (
+                              <li className="flex items-center gap-2 text-xs font-semibold text-rose-500 mt-2">
+                                <span className="animate-pulse">•••</span>
+                                <span>+{remainingCount} layanan lainnya (Arahkan kursor)</span>
+                              </li>
+                            )}
+                          </ul>
+
+                          {/* Hover Tooltip (Full List) */}
+                          {hasMore && (
+                            <div className="absolute z-[99] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 bottom-full left-1/2 -translate-x-1/2 mb-3 w-[340px] max-w-[90vw] p-4 rounded-2xl border border-slate-200 bg-slate-950/95 backdrop-blur-md shadow-2xl text-xs text-slate-200">
+                              <div className="font-semibold mb-2 text-white border-b border-white/10 pb-1.5 flex justify-between items-center">
+                                <span>Detail Paket Lengkap</span>
+                                <span className="text-[10px] font-normal text-slate-400">Total {items.length} item</span>
+                              </div>
+                              <ul className="max-h-60 overflow-y-auto pr-1 space-y-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                                {items.map((item, idx) => (
+                                  <li key={idx} className="flex gap-2 items-start text-[11px] leading-relaxed">
+                                    <span className="text-rose-500 font-bold mt-0.5">•</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {/* Arrow pointing down */}
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-950/95" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                 </div>
                 <div className="rounded-3xl bg-rose-50 p-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-rose-500">Total awal</p>
