@@ -1,5 +1,6 @@
 export * from "./prisma-booking-repository";
 export * from "./prisma-category-repository";
+export * from "./prisma-payment-reminder-repository";
 export * from "./prisma-payment-proof-repository";
 export * from "./prisma-portfolio-repository";
 export * from "./prisma-public-vendor-repository";

@@ -56,6 +56,24 @@ enum PaymentTermStatus {
   PENDING_VERIFICATION
   VERIFIED
   REJECTED
+  OVERDUE
+}
+
+enum PaymentReminderChannel {
+  WHATSAPP
+}
+
+enum PaymentReminderType {
+  D7
+  D1
+  D0
+  OVERDUE
+}
+
+enum PaymentReminderStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 enum ReviewStatus {
@@ -280,22 +298,47 @@ model BookingStatusHistory {
 }
 
 model PaymentTerm {
-  id         String            @id @default(uuid())
-  bookingId  String
-  type       PaymentType
-  amount     Int
-  status     PaymentTermStatus @default(UNPAID)
-  dueDate    DateTime?
-  sequence   Int
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  id                 String               @id @default(uuid())
+  bookingId          String
+  type               PaymentType
+  amount             Int
+  status             PaymentTermStatus    @default(UNPAID)
+  dueDate            DateTime?
+  sequence           Int
+  lastReminderSentAt DateTime?
+  lastReminderType   PaymentReminderType?
+  overdueMarkedAt    DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
-  booking       Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  paymentProofs PaymentProof[]
+  booking            Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  paymentProofs      PaymentProof[]
+  reminderLogs       PaymentReminderLog[]
 
   @@index([bookingId])
   @@index([status])
   @@unique([bookingId, sequence])
+}
+
+model PaymentReminderLog {
+  id                String                @id @default(uuid())
+  paymentTermId     String
+  channel           PaymentReminderChannel
+  reminderType      PaymentReminderType
+  recipientPhone    String
+  provider          String
+  providerMessageId String?
+  status            PaymentReminderStatus @default(PENDING)
+  requestPayload    Json?
+  responsePayload   Json?
+  errorMessage      String?
+  sentAt            DateTime?
+  createdAt         DateTime              @default(now())
+
+  paymentTerm PaymentTerm @relation(fields: [paymentTermId], references: [id], onDelete: Cascade)
+
+  @@index([paymentTermId, createdAt])
+  @@index([paymentTermId, reminderType, status])
 }
 
 model PaymentProof {

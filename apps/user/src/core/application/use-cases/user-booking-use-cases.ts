@@ -24,14 +24,30 @@ const DEFAULT_PAYMENT_TERM_DISTRIBUTION = [
   { type: PaymentType.FINAL_PAYMENT, percentage: 0.2 },
 ] as const;
 
-const buildDefaultPaymentTerms = (totalAmount: number) => {
+const PAYMENT_TERM_DUE_DAY_OFFSETS = {
+  [PaymentType.DP]: { eventOffsetDays: 30, minimumLeadDays: 1 },
+  [PaymentType.INSTALLMENT]: { eventOffsetDays: 14, minimumLeadDays: 7 },
+  [PaymentType.FINAL_PAYMENT]: { eventOffsetDays: 3, minimumLeadDays: 14 },
+} as const;
+
+const addDays = (date: Date, days: number) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const buildDefaultPaymentTerms = (totalAmount: number, bookingCreatedAt: Date, eventDate: Date) => {
   const dpAmount = Math.round(totalAmount * DEFAULT_PAYMENT_TERM_DISTRIBUTION[0].percentage);
   const installmentAmount = Math.round(
     totalAmount * DEFAULT_PAYMENT_TERM_DISTRIBUTION[1].percentage
   );
   const finalAmount = Math.max(totalAmount - dpAmount - installmentAmount, 0);
+  const bookingDay = startOfDay(bookingCreatedAt);
+  const eventDay = startOfDay(eventDate);
 
-  return [
+  const terms = [
     {
       type: PaymentType.DP,
       amount: dpAmount,
@@ -53,7 +69,41 @@ const buildDefaultPaymentTerms = (totalAmount: number) => {
       sequence: 3,
       dueDate: null,
     },
-  ];
+  ].map((term) => {
+    const rule = PAYMENT_TERM_DUE_DAY_OFFSETS[term.type];
+    const targetFromEvent = addDays(eventDay, -rule.eventOffsetDays);
+    const minimumFromBooking = addDays(bookingDay, rule.minimumLeadDays);
+    const clampedLowerBound =
+      targetFromEvent.getTime() < bookingDay.getTime() ? minimumFromBooking : targetFromEvent;
+    const dueDate =
+      clampedLowerBound.getTime() > eventDay.getTime() ? new Date(eventDay) : clampedLowerBound;
+
+    return {
+      ...term,
+      dueDate,
+    };
+  });
+
+  let previousDueDate: Date | null = null;
+
+  return terms.map((term) => {
+    let normalizedDueDate = term.dueDate ? new Date(term.dueDate) : null;
+
+    if (previousDueDate && normalizedDueDate && normalizedDueDate.getTime() < previousDueDate.getTime()) {
+      normalizedDueDate = new Date(previousDueDate);
+    }
+
+    if (normalizedDueDate && normalizedDueDate.getTime() > eventDay.getTime()) {
+      normalizedDueDate = new Date(eventDay);
+    }
+
+    previousDueDate = normalizedDueDate;
+
+    return {
+      ...term,
+      dueDate: normalizedDueDate,
+    };
+  });
 };
 
 const isPastEventDate = (eventDate: Date) => {
@@ -89,6 +139,7 @@ export class CreateUserBookingUseCase {
 
   async execute(input: CreateUserBookingInput, actor: UserSessionDTO): Promise<UserBookingDetailDTO> {
     const session = ensureActiveUserSession(actor);
+    const bookingCreatedAt = new Date();
 
     if (isPastEventDate(input.eventDate)) {
       throw new Error("Tanggal acara tidak boleh di masa lalu");
@@ -132,7 +183,7 @@ export class CreateUserBookingUseCase {
         ...input,
         userId: session.userId,
         totalAmount: target.service.price,
-        paymentTerms: buildDefaultPaymentTerms(target.service.price),
+        paymentTerms: buildDefaultPaymentTerms(target.service.price, bookingCreatedAt, input.eventDate),
       },
       {
         actorId: session.userId,

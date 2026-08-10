@@ -3,6 +3,7 @@ import "server-only";
 import type {
   BookingStatus,
   PaginatedResult,
+  PaymentReminderType,
   PaymentProofStatus,
   PaymentStatus,
   PaymentTermStatus,
@@ -29,6 +30,8 @@ const mapPaymentStatus = (status: string) => status as PaymentStatus;
 const mapPaymentProofStatus = (status: string) => status as PaymentProofStatus;
 const mapPaymentTermStatus = (status: string) => status as PaymentTermStatus;
 const mapPaymentType = (type: string) => type as PaymentType;
+const mapPaymentReminderType = (type: string | null | undefined) =>
+  (type ? (type as PaymentReminderType) : null);
 
 const toJsonValue = (value: unknown) => {
   if (value === undefined) {
@@ -81,6 +84,9 @@ const mapTermItem = (term: {
   status: string;
   dueDate: Date | null;
   sequence: number;
+  lastReminderSentAt: Date | null;
+  lastReminderType: string | null;
+  overdueMarkedAt: Date | null;
   paymentProofs: Array<{
     id: string;
     paymentTermId: string;
@@ -101,6 +107,9 @@ const mapTermItem = (term: {
   status: mapPaymentTermStatus(term.status),
   dueDate: term.dueDate,
   sequence: term.sequence,
+  lastReminderSentAt: term.lastReminderSentAt,
+  lastReminderType: mapPaymentReminderType(term.lastReminderType),
+  overdueMarkedAt: term.overdueMarkedAt,
   latestProof: mapLatestProofSummary(term.paymentProofs[0]),
 });
 

@@ -1,5 +1,6 @@
 export * from "./booking-repository";
 export * from "./category-repository";
+export * from "./payment-reminder-repository";
 export * from "./payment-proof-repository";
 export * from "./portfolio-repository";
 export * from "./public-vendor-repository";

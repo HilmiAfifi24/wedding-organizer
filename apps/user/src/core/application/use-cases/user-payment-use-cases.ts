@@ -43,7 +43,8 @@ const assertCanUploadToTerm = (context: UserPaymentTermUploadContextDTO) => {
 
   if (
     context.term.status !== PaymentTermStatus.UNPAID &&
-    context.term.status !== PaymentTermStatus.REJECTED
+    context.term.status !== PaymentTermStatus.REJECTED &&
+    context.term.status !== PaymentTermStatus.OVERDUE
   ) {
     throw new Error("Termin ini sedang menunggu verifikasi pembayaran");
   }
@@ -133,7 +134,9 @@ export class UploadUserPaymentProofUseCase {
 
     assertCanUploadToTerm(context);
 
-    const isReupload = context.term.status === PaymentTermStatus.REJECTED;
+    const isReupload =
+      context.term.status === PaymentTermStatus.REJECTED ||
+      context.term.status === PaymentTermStatus.OVERDUE;
     const fileUrl = await this.fileStorage.upload(input.file);
 
     try {

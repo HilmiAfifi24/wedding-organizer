@@ -2,6 +2,7 @@ import type {
   BookingStatus,
   CreateAuditLogInput,
   PaginatedResult,
+  PaymentReminderType,
   PaymentProofStatus,
   PaymentProofStatusHistoryDTO,
   PaymentStatus,
@@ -51,6 +52,9 @@ export interface UserPaymentTermItemDTO {
   status: PaymentTermStatus;
   dueDate?: Date | null;
   sequence: number;
+  lastReminderType?: PaymentReminderType | null;
+  lastReminderSentAt?: Date | null;
+  overdueMarkedAt?: Date | null;
   latestProof: UserPaymentProofSummaryDTO | null;
 }
 

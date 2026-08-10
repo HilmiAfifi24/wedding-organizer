@@ -5,6 +5,7 @@ import type {
   BookingStatus,
   ListOptions,
   PaginatedResult,
+  PaymentReminderType,
   PaymentProofStatus,
   PaymentProofStatusHistoryDTO,
   PaymentStatus,
@@ -36,6 +37,20 @@ const mapPaymentStatus = (status: string) => status as PaymentStatus;
 const mapPaymentTermStatus = (status: string) => status as PaymentTermStatus;
 const mapPaymentType = (type: string) => type as PaymentType;
 const mapPaymentProofStatus = (status: string) => status as PaymentProofStatus;
+const mapPaymentReminderType = (type: string | null | undefined) =>
+  (type ? (type as PaymentReminderType) : null);
+const getPaymentTypeLabel = (type: string) => {
+  switch (mapPaymentType(type)) {
+    case "DP":
+      return "DP";
+    case "INSTALLMENT":
+      return "Cicilan";
+    case "FINAL_PAYMENT":
+      return "Pelunasan";
+    default:
+      return type;
+  }
+};
 
 const toJsonValue = (value: unknown) => {
   if (value === undefined) {
@@ -205,6 +220,9 @@ const mapPaymentTermItem = (term: {
   status: string;
   dueDate: Date | null;
   sequence: number;
+  lastReminderSentAt: Date | null;
+  lastReminderType: string | null;
+  overdueMarkedAt: Date | null;
   paymentProofs: Array<{
     id: string;
     paymentTermId: string;
@@ -225,6 +243,9 @@ const mapPaymentTermItem = (term: {
   status: mapPaymentTermStatus(term.status),
   dueDate: term.dueDate,
   sequence: term.sequence,
+  lastReminderSentAt: term.lastReminderSentAt,
+  lastReminderType: mapPaymentReminderType(term.lastReminderType),
+  overdueMarkedAt: term.overdueMarkedAt,
   latestProof: term.paymentProofs[0]
     ? {
         id: term.paymentProofs[0].id,
@@ -345,7 +366,7 @@ const mapPaymentTimelineItem = (input: {
   };
 }): UserBookingTimelineItemDTO => {
   const nextStatus = mapPaymentProofStatus(input.history.newStatus);
-  const termLabel = `Termin ${input.paymentTermSequence} · ${input.paymentTermType}`;
+  const termLabel = `Termin ${input.paymentTermSequence} · ${getPaymentTypeLabel(input.paymentTermType)}`;
 
   if (!input.history.previousStatus && nextStatus === "PENDING") {
     return {
@@ -401,6 +422,77 @@ const mapPaymentTimelineItem = (input: {
   };
 };
 
+const mapPaymentTermTimelineItems = (term: {
+  id: string;
+  type: string;
+  amount: number;
+  dueDate: Date | null;
+  sequence: number;
+  createdAt: Date;
+  overdueMarkedAt: Date | null;
+  reminderLogs: Array<{
+    id: string;
+    reminderType: string;
+    status: string;
+    sentAt: Date | null;
+    createdAt: Date;
+  }>;
+}): UserBookingTimelineItemDTO[] => {
+  const termLabel = `Termin ${term.sequence} · ${getPaymentTypeLabel(term.type)}`;
+  const items: UserBookingTimelineItemDTO[] = [];
+
+  if (term.dueDate) {
+    items.push({
+      id: `term-${term.id}-scheduled`,
+      type: "PAYMENT_TERM_SCHEDULED",
+      title: `${termLabel} dijadwalkan`,
+      description: `${termLabel} jatuh tempo pada ${new Intl.DateTimeFormat("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(term.dueDate)}.`,
+      actorName: null,
+      createdAt: term.createdAt,
+    });
+  }
+
+  for (const log of term.reminderLogs) {
+    if (log.status !== "SENT") {
+      continue;
+    }
+
+    const reminderTitle =
+      log.reminderType === "OVERDUE"
+        ? "Pengingat WhatsApp keterlambatan dikirim"
+        : `Pengingat WhatsApp ${log.reminderType} dikirim`;
+
+    items.push({
+      id: `term-${term.id}-reminder-${log.id}`,
+      type: "PAYMENT_REMINDER_SENT",
+      title: reminderTitle,
+      description:
+        log.reminderType === "OVERDUE"
+          ? `${termLabel} telah melewati jatuh tempo dan pengingat keterlambatan dikirim via WhatsApp.`
+          : `${termLabel} mendapatkan pengingat pembayaran via WhatsApp (${log.reminderType}).`,
+      actorName: null,
+      createdAt: log.sentAt ?? log.createdAt,
+    });
+  }
+
+  if (term.overdueMarkedAt) {
+    items.push({
+      id: `term-${term.id}-overdue`,
+      type: "PAYMENT_TERM_OVERDUE",
+      title: "Termin pembayaran terlambat",
+      description: `${termLabel} telah melewati jatuh tempo dan ditandai sebagai terlambat.`,
+      actorName: null,
+      createdAt: term.overdueMarkedAt,
+    });
+  }
+
+  return items;
+};
+
 const buildTimeline = (input: {
   bookingHistory: Array<{
     id: string;
@@ -429,8 +521,25 @@ const buildTimeline = (input: {
       } | null;
     }>;
   }>;
+  paymentTerms: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    dueDate: Date | null;
+    sequence: number;
+    createdAt: Date;
+    overdueMarkedAt: Date | null;
+    reminderLogs: Array<{
+      id: string;
+      reminderType: string;
+      status: string;
+      sentAt: Date | null;
+      createdAt: Date;
+    }>;
+  }>;
 }): UserBookingTimelineItemDTO[] => {
   const bookingItems = input.bookingHistory.map((item) => mapBookingTimelineItem(item));
+  const paymentTermItems = input.paymentTerms.flatMap((term) => mapPaymentTermTimelineItems(term));
   const paymentItems = input.paymentProofs.flatMap((proof) =>
     proof.statusHistory.map((history) =>
       mapPaymentTimelineItem({
@@ -442,7 +551,7 @@ const buildTimeline = (input: {
     )
   );
 
-  return [...bookingItems, ...paymentItems].sort(
+  return [...bookingItems, ...paymentTermItems, ...paymentItems].sort(
     (left, right) => left.createdAt.getTime() - right.createdAt.getTime()
   );
 };
@@ -511,6 +620,17 @@ const mapBookingDetail = (
           status: string;
           dueDate: Date | null;
           sequence: number;
+          lastReminderSentAt: Date | null;
+          lastReminderType: string | null;
+          overdueMarkedAt: Date | null;
+          createdAt: Date;
+          reminderLogs: Array<{
+            id: string;
+            reminderType: string;
+            status: string;
+            sentAt: Date | null;
+            createdAt: Date;
+          }>;
           paymentProofs: Array<{
             id: string;
             paymentTermId: string;
@@ -617,6 +737,7 @@ const mapBookingDetail = (
     paymentProofs,
     timeline: buildTimeline({
       bookingHistory: booking.statusHistory,
+      paymentTerms: booking.paymentTerms,
       paymentProofs: booking.paymentProofs,
     }),
   };
@@ -731,6 +852,18 @@ const bookingDetailInclude = {
       sequence: "asc" as const,
     },
     include: {
+      reminderLogs: {
+        orderBy: {
+          createdAt: "asc" as const,
+        },
+        select: {
+          id: true,
+          reminderType: true,
+          status: true,
+          sentAt: true,
+          createdAt: true,
+        },
+      },
       paymentProofs: {
         orderBy: {
           createdAt: "desc" as const,

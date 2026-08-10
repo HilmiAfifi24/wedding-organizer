@@ -44,7 +44,8 @@ export function PaymentProofUploadForm({ context }: { context: UserPaymentTermUp
   const previewSource = useMemo(() => {
     return selectedFile ? URL.createObjectURL(selectedFile) : null;
   }, [selectedFile]);
-  const hasRejectedPreviousProof = context.term.status === "REJECTED";
+  const hasRejectedPreviousProof =
+    context.term.status === "REJECTED" || context.term.status === "OVERDUE";
 
   useEffect(() => {
     return () => {

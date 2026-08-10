@@ -5,6 +5,7 @@ import type {
   CreateAuditLogInput,
   ListOptions,
   PaginatedResult,
+  PaymentReminderType,
   PaymentProofStatus,
   PaymentProofStatusHistoryDTO,
   PaymentStatus,
@@ -114,15 +115,35 @@ export interface UserBookingPaymentTermItemDTO {
   status: PaymentTermStatus;
   dueDate?: Date | null;
   sequence: number;
+  lastReminderType?: PaymentReminderType | null;
+  lastReminderSentAt?: Date | null;
+  overdueMarkedAt?: Date | null;
   latestProof: Pick<
     UserBookingPaymentProofItemDTO,
     "id" | "paymentTermId" | "amount" | "fileUrl" | "status" | "note" | "verificationNote" | "rejectionReason" | "createdAt" | "updatedAt"
   > | null;
 }
 
+export type UserBookingTimelineItemType =
+  | "BOOKING_CREATED"
+  | "BOOKING_ACCEPTED"
+  | "BOOKING_REJECTED"
+  | "BOOKING_CONFIRMED"
+  | "BOOKING_COMPLETED"
+  | "BOOKING_CANCELLED"
+  | `BOOKING_${BookingStatus}`
+  | "PAYMENT_TERM_SCHEDULED"
+  | "PAYMENT_REMINDER_SENT"
+  | "PAYMENT_TERM_OVERDUE"
+  | "PAYMENT_PROOF_UPLOADED"
+  | "PAYMENT_PROOF_REUPLOADED"
+  | "PAYMENT_VERIFIED"
+  | "PAYMENT_REJECTED"
+  | `PAYMENT_${PaymentProofStatus}`;
+
 export interface UserBookingTimelineItemDTO {
   id: string;
-  type: string;
+  type: UserBookingTimelineItemType;
   title: string;
   description?: string | null;
   actorName?: string | null;

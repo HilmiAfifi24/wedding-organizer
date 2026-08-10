@@ -41,6 +41,24 @@ export enum PaymentTermStatus {
   PENDING_VERIFICATION = "PENDING_VERIFICATION",
   VERIFIED = "VERIFIED",
   REJECTED = "REJECTED",
+  OVERDUE = "OVERDUE",
+}
+
+export enum PaymentReminderChannel {
+  WHATSAPP = "WHATSAPP",
+}
+
+export enum PaymentReminderType {
+  D7 = "D7",
+  D1 = "D1",
+  D0 = "D0",
+  OVERDUE = "OVERDUE",
+}
+
+export enum PaymentReminderStatus {
+  PENDING = "PENDING",
+  SENT = "SENT",
+  FAILED = "FAILED",
 }
 
 export enum ReviewStatus {
@@ -611,8 +629,27 @@ export interface PaymentTermDTO {
   status: PaymentTermStatus;
   dueDate?: Date | null;
   sequence: number;
+  lastReminderSentAt?: Date | null;
+  lastReminderType?: PaymentReminderType | null;
+  overdueMarkedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface PaymentReminderLogDTO {
+  id: string;
+  paymentTermId: string;
+  channel: PaymentReminderChannel;
+  reminderType: PaymentReminderType;
+  recipientPhone: string;
+  provider: string;
+  providerMessageId?: string | null;
+  status: PaymentReminderStatus;
+  requestPayload?: unknown;
+  responsePayload?: unknown;
+  errorMessage?: string | null;
+  sentAt?: Date | null;
+  createdAt: Date;
 }
 
 export interface PaymentProofStatusHistoryDTO {

@@ -24,6 +24,7 @@ export const PAYMENT_TERM_STATUS_LABELS: Record<PaymentTermStatus, string> = {
   [PaymentTermStatus.PENDING_VERIFICATION]: "Menunggu verifikasi",
   [PaymentTermStatus.VERIFIED]: "Terverifikasi",
   [PaymentTermStatus.REJECTED]: "Ditolak",
+  [PaymentTermStatus.OVERDUE]: "Terlambat",
 };
 
 export const PAYMENT_PROOF_STATUS_LABELS: Record<PaymentProofStatus, string> = {
@@ -67,6 +68,8 @@ export const getTermStatusBadgeClassName = (status: PaymentTermStatus) => {
       return "border-emerald-200 bg-emerald-50 text-emerald-700";
     case PaymentTermStatus.REJECTED:
       return "border-rose-200 bg-rose-50 text-rose-700";
+    case PaymentTermStatus.OVERDUE:
+      return "border-orange-200 bg-orange-50 text-orange-700";
     case PaymentTermStatus.PENDING_VERIFICATION:
       return "border-amber-200 bg-amber-50 text-amber-700";
     case PaymentTermStatus.UNPAID:

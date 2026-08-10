@@ -17,7 +17,28 @@ const canUploadForTerm = (
 ) =>
   (bookingStatus === BookingStatus.PENDING_PAYMENT ||
     bookingStatus === BookingStatus.CONFIRMED) &&
-  (status === "UNPAID" || status === "REJECTED");
+  (status === "UNPAID" || status === "REJECTED" || status === "OVERDUE");
+
+const getDueDateHint = (term: UserPaymentTermItemDTO) => {
+  if (!term.dueDate) {
+    return {
+      text: "Tanggal jatuh tempo belum ditentukan",
+      className: "text-slate-600",
+    };
+  }
+
+  if (term.status === "OVERDUE") {
+    return {
+      text: `Jatuh tempo ${formatPaymentDate(term.dueDate)} · pembayaran terlambat`,
+      className: "text-orange-700",
+    };
+  }
+
+  return {
+    text: `Jatuh tempo ${formatPaymentDate(term.dueDate)}`,
+    className: "text-slate-600",
+  };
+};
 
 export function PaymentTermCard({
   bookingId,
@@ -28,6 +49,8 @@ export function PaymentTermCard({
   bookingStatus: BookingStatus;
   term: UserPaymentTermItemDTO;
 }) {
+  const dueDateHint = getDueDateHint(term);
+
   return (
     <Card className="rounded-[28px] border-white/80 bg-white/90 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
       <CardContent className="space-y-4 p-5">
@@ -39,9 +62,7 @@ export function PaymentTermCard({
             <p className="mt-1 text-xl font-semibold text-rose-600">
               {formatPaymentPrice(term.amount)}
             </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {term.dueDate ? `Jatuh tempo ${formatPaymentDate(term.dueDate)}` : "Tanggal jatuh tempo belum ditentukan"}
-            </p>
+            <p className={`mt-1 text-sm ${dueDateHint.className}`}>{dueDateHint.text}</p>
           </div>
           <Badge className={`border ${getTermStatusBadgeClassName(term.status)}`}>
             {PAYMENT_TERM_STATUS_LABELS[term.status]}
@@ -67,7 +88,9 @@ export function PaymentTermCard({
           {canUploadForTerm(bookingStatus, term.status) ? (
             <Button asChild className="h-10 rounded-2xl bg-rose-600 text-white hover:bg-rose-700">
               <Link href={`/bookings/${bookingId}/payments/upload?termId=${term.id}`}>
-                {term.status === "REJECTED" ? "Upload ulang" : "Upload bukti"}
+                {term.status === "REJECTED" || term.status === "OVERDUE"
+                  ? "Upload ulang"
+                  : "Upload bukti"}
               </Link>
             </Button>
           ) : null}
